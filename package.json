@@ -1,7 +1,6 @@
 {
 	"name": "datasentry",
 	"private": true,
-	"scripts": {},
 	"dependencies": {
 		"prettier-plugin-tailwindcss": "^0.6.11"
 	}
