@@ -31,5 +31,5 @@ export async function POST(req: NextRequest) {
 	const newHost = (await db.insert(hostTable).values(data).returning())[0];
 	console.log("[LOG] created host with id ", newHost.id);
 
-	return NextResponse.json({ success: true, host: newHost });
+	return NextResponse.json({ success: true, data: newHost });
 }
