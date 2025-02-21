@@ -5,81 +5,62 @@ import { dirname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { startServer } from "src/app";
+import type { Config } from "./types/types";
+
+export let globalConfig: Config | null = null;
 
 const configFilePath = `${
 	process.env.HOME || process.env.USERPROFILE
 }/.config/cliapp/settings.json`;
-const defaultConfig = JSON.stringify(
-	{
-		initialized: true,
-		lastRun: new Date().toISOString(),
-	},
-	null,
-	2,
-);
+
+const defaultConfig: Config = {
+	initialized: true,
+	lastRun: new Date().toISOString(),
+	lastUpdate: new Date().toISOString(),
+	updateCount: 0,
+	password: null,
+};
 
 async function ensureConfigDir() {
 	const configDir = dirname(configFilePath);
-	try {
-		await mkdir(configDir, { recursive: true });
-		return true;
-	} catch (error: any) {
-		console.error(`Failed to create config directory: ${error.message}`);
-		return false;
-	}
+	await mkdir(configDir, { recursive: true });
+	return true;
 }
 
 async function runSetup() {
-	if (!(await ensureConfigDir())) {
-		process.exit(1);
-	}
+	await ensureConfigDir();
 
 	const file = Bun.file(configFilePath);
-
 	if (await file.exists()) {
-		try {
-			const existingConfig = await file.json();
-			console.log("Using existing configuration file");
-			return existingConfig;
-		} catch (error) {
-			console.warn("Existing config file is corrupt, recreating it...");
-		}
+		const existingConfig = await file.json();
+		console.log("Using existing configuration file");
+		globalConfig = existingConfig;
+		return existingConfig;
 	}
 
-	try {
-		await Bun.write(configFilePath, defaultConfig);
-		console.log("Created new configuration file");
-		return JSON.parse(defaultConfig);
-	} catch (error: any) {
-		console.error(`Failed to write config file: ${error.message}`);
-		process.exit(1);
-	}
+	const passwordInput = prompt("Enter a password for the host: ");
+	defaultConfig.password = passwordInput;
+
+	await Bun.write(configFilePath, JSON.stringify(defaultConfig));
+	console.log("Created new configuration file");
+	globalConfig = defaultConfig;
+	return globalConfig;
 }
 
 async function runMonitoringService() {
-	try {
-		const file = Bun.file(configFilePath);
-		if (await file.exists()) {
-			let currentConfig;
-			try {
-				currentConfig = await file.json();
-			} catch (error) {
-				// If file exists but is not valid JSON, initialize it
-				currentConfig = JSON.parse(defaultConfig);
-			}
+	const file = Bun.file(configFilePath);
+	if (await file.exists()) {
+		let currentConfig = await file.json();
 
-			// Update configuration
-			currentConfig.lastUpdate = new Date().toISOString();
-			currentConfig.updateCount = (currentConfig.updateCount || 0) + 1;
+		currentConfig.lastUpdate = new Date().toISOString();
+		currentConfig.updateCount = (currentConfig.updateCount || 0) + 1;
 
-			await Bun.write(configFilePath, JSON.stringify(currentConfig, null, 2));
+		await Bun.write(configFilePath, JSON.stringify(currentConfig, null, 2));
+		globalConfig = currentConfig;
 
-			await startServer(3000, "http://localhost:3000");
-		} else {
-			await runSetup();
-		}
-	} catch (error: any) {
-		console.error(`Error in monitoring service: ${error.message}`);
+		await startServer(3000, "http://localhost:3000");
+	} else {
+		globalConfig = await runSetup();
 	}
 }
 
@@ -91,23 +72,18 @@ yargs(hideBin(process.argv))
 		async (argv: any) => {
 			await runSetup();
 
-			try {
-				const scriptPath = fileURLToPath(import.meta.url);
-				const child = spawn(process.execPath, [scriptPath, "run"], {
-					detached: true,
-					stdio: "inherit",
-					env: process.env,
-				});
+			const scriptPath = fileURLToPath(import.meta.url);
+			const child = spawn(process.execPath, [scriptPath, "run"], {
+				detached: true,
+				stdio: "ignore",
+				env: process.env,
+			});
 
-				child.unref();
-				console.log(
-					`Background monitoring service started with PID ${child.pid}`,
-				);
-				process.exit(0);
-			} catch (error: any) {
-				console.error(`Failed to start background service: ${error.message}`);
-				process.exit(1);
-			}
+			child.unref();
+			console.log(
+				`Background monitoring service started with PID ${child.pid}`,
+			);
+			process.exit(0);
 		},
 	)
 	.command(

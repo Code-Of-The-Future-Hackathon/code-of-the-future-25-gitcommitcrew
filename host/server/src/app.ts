@@ -15,13 +15,13 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use(
-  rateLimit({
-    windowMs: 1000,
-    limit: 15,
-    standardHeaders: "draft-7",
-    legacyHeaders: false,
-    validate: { xForwardedForHeader: false },
-  })
+	rateLimit({
+		windowMs: 1000,
+		limit: 15,
+		standardHeaders: "draft-7",
+		legacyHeaders: false,
+		validate: { xForwardedForHeader: false },
+	}),
 );
 
 app.use(mainRouter);
@@ -29,29 +29,29 @@ app.use(mainRouter);
 const server = http.createServer(app);
 
 const startServer = async (port: number, serverUrl: string) => {
-  try {
-    const start_ms = Date.now();
+	try {
+		const start_ms = Date.now();
 
-    server.listen(port, () => {
-      const end_ms = Date.now();
+		server.listen(port, () => {
+			const end_ms = Date.now();
 
-      console.log(
-        {
-          port,
-          serverUrl,
-          time: end_ms - start_ms,
-        },
-        "Server started successfully"
-      );
-    });
-  } catch (error) {
-    console.error(
-      {
-        error,
-      },
-      "Server failed to start"
-    );
-  }
+			console.log(
+				{
+					port,
+					serverUrl,
+					time: end_ms - start_ms,
+				},
+				"Server started successfully",
+			);
+		});
+	} catch (error) {
+		console.error(
+			{
+				error,
+			},
+			"Server failed to start",
+		);
+	}
 };
 
 export { startServer };
