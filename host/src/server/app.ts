@@ -29,29 +29,7 @@ app.use(mainRouter);
 const server = http.createServer(app);
 
 const startServer = async (port: number, serverUrl: string) => {
-	try {
-		const start_ms = Date.now();
-
-		server.listen(port, () => {
-			const end_ms = Date.now();
-
-			console.log(
-				{
-					port,
-					serverUrl,
-					time: end_ms - start_ms,
-				},
-				"Server started successfully",
-			);
-		});
-	} catch (error) {
-		console.error(
-			{
-				error,
-			},
-			"Server failed to start",
-		);
-	}
+	server.listen(port);
 };
 
 export { startServer };

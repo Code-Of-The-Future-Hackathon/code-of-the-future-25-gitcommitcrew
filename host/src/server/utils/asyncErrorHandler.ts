@@ -7,8 +7,6 @@ function asyncErrorHandler(fn: ExpressFunction) {
 	return (req: Request, res: Response, next: NextFunction) => {
 		Promise.resolve(fn(req, res, next)).catch((error: unknown) => {
 			if (error instanceof AppError) {
-				console.error({ error }, "Handled error in asyncErrorHandler");
-
 				return res.status(error.statusCode).json({
 					success: false,
 					error: {
@@ -16,8 +14,6 @@ function asyncErrorHandler(fn: ExpressFunction) {
 					},
 				});
 			}
-
-			console.error({ error }, "Unhandled error in asyncErrorHandler");
 
 			return res.status(500).json({
 				success: false,
