@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Host, hostTable } from "@/lib/db/schema";
-import { toggleClaim } from "./actions";
+import { claimHost, unclaimHost } from "./actions";
 import { Button } from "../ui/button";
 
 import {
@@ -12,7 +12,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
+	DialogFooter,
 } from "@/components/ui/dialog";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { act, useActionState } from "react";
 
 export const columns: ColumnDef<Host>[] = [
 	{
@@ -31,19 +35,47 @@ export const columns: ColumnDef<Host>[] = [
 		header: "Claimed",
 		accessorKey: "claimed",
 		cell: ({ row }) => {
+			const [state, action, pending] = useActionState(
+				claimHost.bind(null, row.original.id),
+				null,
+			);
+
+			console.log(state);
 			return row.original.claimed ? (
-				<Button className="text-white">Unclaim</Button>
+				<Button
+					onClick={async () => {
+						await unclaimHost(row.original.id);
+					}}
+					className="text-white"
+				>
+					Unclaim
+				</Button>
 			) : (
 				<Dialog>
-					<DialogTrigger>Open</DialogTrigger>
-					<DialogContent>
+					<DialogTrigger asChild>
+						<Button variant="outline">Claim</Button>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-[425px]">
 						<DialogHeader>
-							<DialogTitle>Are you absolutely sure?</DialogTitle>
-							<DialogDescription>
-								This action cannot be undone. This will permanently delete your
-								account and remove your data from our servers.
-							</DialogDescription>
+							<DialogTitle>Claim host {row.original.hostname}</DialogTitle>
+							<DialogDescription>This action is revertable.</DialogDescription>
 						</DialogHeader>
+						<form action={action}>
+							<div className="grid gap-4 py-4">
+								<div className="grid grid-cols-4 items-center gap-4">
+									<Label htmlFor="password" className="text-right">
+										Password
+									</Label>
+									<Input name="password" id="password" className="col-span-3" />
+								</div>
+								{state?.invalidPassword && <p>Invalid Password.</p>}
+							</div>
+							<DialogFooter>
+								<Button disabled={pending} type="submit">
+									Claim host
+								</Button>
+							</DialogFooter>
+						</form>
 					</DialogContent>
 				</Dialog>
 			);
