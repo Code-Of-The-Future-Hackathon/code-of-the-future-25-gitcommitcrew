@@ -16,6 +16,12 @@ export const userTable = pgTable("user", {
 	email: text("email"),
 });
 
+export const hostToUser = pgTable("userToHost", {
+	id: text("id").primaryKey().$defaultFn(randomUUID),
+	userId: text('userId').notNull().references(() => userTable.id),
+	hostId: text('hostId').notNull().references(() => hostTable.id)
+})
+
 export const hostTable = pgTable("host", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	ip: text("ip").notNull(),

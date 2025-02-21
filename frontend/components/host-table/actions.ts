@@ -1,8 +1,9 @@
 "use server";
 
+import { getCurrentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { hostTable } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { hostTable, hostToUser } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -16,6 +17,12 @@ export type FormState = {
 } | null;
 
 export async function unclaimHost(id: string) {
+	const { user } = await getCurrentSession();
+
+	if (!user) {
+		redirect("/auth");
+	}
+
 	try {
 		const updatedHost = (
 			await db
@@ -26,6 +33,19 @@ export async function unclaimHost(id: string) {
 		)[0];
 		console.log(
 			`[LOG] updated host with id ${updatedHost.id} to be ${updatedHost.claimed ? "claimed" : "unclaimed"}`,
+		);
+
+		const removedRelation = await db
+			.delete(hostToUser)
+			.where(
+				and(
+					eq(hostToUser.userId, user.id),
+					eq(hostToUser.hostId, updatedHost.id),
+				),
+			);
+
+		console.log(
+			`[LOG] removed relation with user ${user.id} and host ${updatedHost.id}}`,
 		);
 
 		revalidatePath("/hosts");
@@ -43,7 +63,10 @@ export async function claimHost(
 	const inputData = {
 		password: formData.get("password") as string,
 	};
-
+	const { user } = await getCurrentSession();
+	if (!user) {
+		redirect("/auth");
+	}
 	let isCorrect = false;
 
 	try {
@@ -67,6 +90,13 @@ export async function claimHost(
 		)[0];
 		console.log(
 			`[LOG] updated host with id ${updatedHost.id} to be ${updatedHost.claimed ? "claimed" : "unclaimed"}`,
+		);
+
+		const relation = await db
+			.insert(hostToUser)
+			.values({ userId: user.id, hostId: updatedHost.id });
+		console.log(
+			`[LOG] created relation from user ${user.id} to host ${updatedHost.id}`,
 		);
 
 		redirect("/");
