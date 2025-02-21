@@ -7,7 +7,7 @@ import z from "zod";
 const hostSchema = z.object({
 	ip: z.string().ip(),
 	password: z.string(),
-	mac: z.string().length(17),
+	mac: z.string(),
 	hostname: z.string().min(1),
 });
 
@@ -28,5 +28,8 @@ export async function POST(req: NextRequest) {
 		return new NextResponse(null, { status: 500 });
 	}
 
-	const newHost = await db.insert(hostTable).values(data);
+	const newHost = (await db.insert(hostTable).values(data).returning())[0];
+	console.log("[LOG] created host with id ", newHost.id);
+
+	return NextResponse.json({ success: true, host: newHost });
 }
