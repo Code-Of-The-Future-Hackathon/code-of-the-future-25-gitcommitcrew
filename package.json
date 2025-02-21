@@ -1,15 +1,7 @@
 {
 	"name": "datasentry",
 	"private": true,
-	"scripts": {
-		"dev": "bun --filter '*' dev",
-		"db": "docker compose up"
-	},
-	"workspaces": [
-		"frontend",
-		"backend",
-		"host"
-	],
+	"scripts": {},
 	"dependencies": {
 		"prettier-plugin-tailwindcss": "^0.6.11"
 	}

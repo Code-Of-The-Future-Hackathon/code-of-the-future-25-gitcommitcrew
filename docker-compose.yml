@@ -1,0 +1,30 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  host1:
+    build:
+      context: .
+      dockerfile: host/Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - HOST_ID=1
+
+  host2:
+    build:
+      context: .
+      dockerfile: host/Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - HOST_ID=2
+
+  host3:
+    build:
+      context: .
+      dockerfile: host/Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - HOST_ID=3
