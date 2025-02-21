@@ -3,6 +3,16 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Host, hostTable } from "@/lib/db/schema";
 import { toggleClaim } from "./actions";
+import { Button } from "../ui/button";
+
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const columns: ColumnDef<Host>[] = [
 	{
@@ -21,18 +31,21 @@ export const columns: ColumnDef<Host>[] = [
 		header: "Claimed",
 		accessorKey: "claimed",
 		cell: ({ row }) => {
-			return (
-				<input
-					onChange={async (e) => {
-						try {
-							await toggleClaim(e.target.checked, row.original.id);
-						} catch (err) {
-							console.log("cannot update host claimed state");
-						}
-					}}
-					type="checkbox"
-					defaultChecked={!!row.original.claimed}
-				></input>
+			return row.original.claimed ? (
+				<Button className="text-white">Unclaim</Button>
+			) : (
+				<Dialog>
+					<DialogTrigger>Open</DialogTrigger>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Are you absolutely sure?</DialogTitle>
+							<DialogDescription>
+								This action cannot be undone. This will permanently delete your
+								account and remove your data from our servers.
+							</DialogDescription>
+						</DialogHeader>
+					</DialogContent>
+				</Dialog>
 			);
 		},
 	},
