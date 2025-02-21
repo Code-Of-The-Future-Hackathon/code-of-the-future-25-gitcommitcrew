@@ -57,7 +57,6 @@ async function runSetup() {
 }
 
 async function runMonitoringService() {
-  setInterval(async () => {
     try {
       const file = Bun.file(configFilePath);
       if (await file.exists()) {
@@ -75,14 +74,13 @@ async function runMonitoringService() {
 
         await Bun.write(configFilePath, JSON.stringify(currentConfig, null, 2));
 
-        startServer(3000, "http://localhost:3000");
+        await startServer(3000, "http://localhost:3000");
       } else {
         await runSetup();
       }
     } catch (error: any) {
       console.error(`Error in monitoring service: ${error.message}`);
     }
-  }, 1000);
 }
 
 yargs(hideBin(process.argv))
@@ -97,7 +95,7 @@ yargs(hideBin(process.argv))
         const scriptPath = fileURLToPath(import.meta.url);
         const child = spawn(process.execPath, [scriptPath, "run"], {
           detached: true,
-          stdio: "ignore",
+          stdio: "inherit",
           env: process.env,
         });
 

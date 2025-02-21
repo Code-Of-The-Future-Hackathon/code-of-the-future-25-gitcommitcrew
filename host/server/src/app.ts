@@ -7,7 +7,6 @@ import rateLimit from "express-rate-limit";
 import mainRouter from "@routes/index";
 
 const app = express();
-const server = http.createServer(app);
 
 app.set("trust proxy", 1);
 
@@ -26,6 +25,8 @@ app.use(
 );
 
 app.use(mainRouter);
+
+const server = http.createServer(app);
 
 const startServer = async (port: number, serverUrl: string) => {
   try {
