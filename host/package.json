@@ -6,6 +6,7 @@
 		"@types/bun": "latest",
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
+		"@types/systeminformation": "^3.54.1",
 		"@types/yargs": "^17.0.33"
 	},
 	"peerDependencies": {
