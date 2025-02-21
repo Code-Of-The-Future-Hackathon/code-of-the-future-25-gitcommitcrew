@@ -4,6 +4,6 @@ type ExpressFunction = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
-) => Promise<void> | void;
+) => Promise<void>;
 
 export type { ExpressFunction };

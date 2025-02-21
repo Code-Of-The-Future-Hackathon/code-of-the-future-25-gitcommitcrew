@@ -4,6 +4,6 @@ import { getStaticData } from "@/server/controllers/data";
 
 const router = Router();
 
-router.get("/data", getStaticData);
+router.get("/", getStaticData);
 
 export default router;

@@ -1,9 +1,9 @@
 import { Router } from "express";
 
-import DataRouter from "@/server/routes/data";
+import dataRouter from "@/server/routes/data";
 
 const router = Router();
 
-router.use("/data", DataRouter);
+router.use("/data", dataRouter);
 
 export default router;
