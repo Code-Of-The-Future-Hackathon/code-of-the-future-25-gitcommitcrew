@@ -22,6 +22,15 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    "baseUrl": "./server",
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@logger": ["src/config/logger.ts"],
+      "@routes/*": ["src/routes/*"],
+      "@utils/*": ["src/utils/*"],
+      "@package": ["package.json"]
+    }
   }
 }
