@@ -76,4 +76,4 @@ export const sessionTable = pgTable("session", {
 
 export type User = InferSelectModel<typeof userTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
-export type Hostname = InferSelectModel<typeof hostTable>;
+export type Host = InferSelectModel<typeof hostTable>;
