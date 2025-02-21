@@ -3,6 +3,7 @@ import http from "http";
 import bodyParser from "body-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 
 import mainRouter from "@/server/routes/index";
 
@@ -11,6 +12,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.use(cors());
 
