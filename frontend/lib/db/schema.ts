@@ -3,6 +3,7 @@ import {
 	text,
 	integer,
 	timestamp,
+	boolean,
 	primaryKey,
 } from "drizzle-orm/pg-core";
 import type { InferSelectModel } from "drizzle-orm";
@@ -13,6 +14,15 @@ export const userTable = pgTable("user", {
 	githubId: integer("githubId"),
 	username: text("username"),
 	email: text("email"),
+});
+
+export const hostTable = pgTable("host", {
+	id: text("id").primaryKey().$defaultFn(randomUUID),
+	ip: text("ip").notNull(),
+	claimed: boolean("claimed").default(false),
+	password: text("password").notNull(),
+	mac: text("mac").notNull(),
+	hostname: text("hostname").notNull(),
 });
 
 export const permissionTable = pgTable("permission", {
@@ -37,7 +47,7 @@ export const rolePermissionTable = pgTable(
 			.notNull()
 			.references(() => permissionTable.id),
 	},
-	(table) => [primaryKey({ columns: [table.roleId, table.permissionId] })]
+	(table) => [primaryKey({ columns: [table.roleId, table.permissionId] })],
 );
 
 export const userRoleTable = pgTable(
@@ -50,7 +60,7 @@ export const userRoleTable = pgTable(
 			.notNull()
 			.references(() => roleTable.id),
 	},
-	(table) => [primaryKey({ columns: [table.userId, table.roleId] })]
+	(table) => [primaryKey({ columns: [table.userId, table.roleId] })],
 );
 
 export const sessionTable = pgTable("session", {
@@ -66,3 +76,4 @@ export const sessionTable = pgTable("session", {
 
 export type User = InferSelectModel<typeof userTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
+export type Hostname = InferSelectModel<typeof hostTable>;
