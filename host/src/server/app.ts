@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
-import mainRouter from "@routes/index";
+import mainRouter from "@/server/routes/index";
 
 const app = express();
 
