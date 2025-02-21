@@ -12,4 +12,12 @@ export const columns: ColumnDef<User>[] = [
 		accessorKey: "email",
 		header: "Email",
 	},
+	{
+		header: "Action",
+		accessorKey: "id",
+		cell: ({ row }) => {
+			console.log("ROW");
+			return <h1>{row.original.email}</h1>;
+		},
+	},
 ];

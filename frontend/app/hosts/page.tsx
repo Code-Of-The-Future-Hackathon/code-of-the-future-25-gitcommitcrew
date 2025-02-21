@@ -1,8 +1,7 @@
-import { UserTable } from "@/components/user-table";
+import { HostTable } from "@/components/host-table";
 import { getCurrentSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { userTable } from "@/lib/db/schema";
-import { hasPerms } from "@/lib/perms";
+import { hostTable } from "@/lib/db/schema";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
@@ -12,11 +11,11 @@ export default async function Page() {
 	// const authorized = await hasPerms(user, ["read:*", "write:*"]);
 	// if (!authorized) redirect("/");
 
-	const users = await db.select().from(userTable);
+	const hosts = await db.select().from(hostTable);
 
 	return (
 		<div>
-			<UserTable users={users} />
+			<HostTable hosts={hosts} />
 		</div>
 	);
 }
