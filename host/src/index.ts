@@ -4,8 +4,8 @@ import { spawn } from "child_process";
 import { dirname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { startServer } from "src/app";
-import type { Config } from "./types/types";
+import { startServer } from "./server/app";
+import type { Config } from "./types/config";
 
 export let globalConfig: Config | null = null;
 
