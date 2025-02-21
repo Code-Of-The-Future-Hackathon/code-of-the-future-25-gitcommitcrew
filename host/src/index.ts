@@ -118,7 +118,6 @@ yargs(hideBin(process.argv))
 		},
 		async (argv: any) => {
 			await runSetup();
-
 			if (argv.detach) {
 				// Run in background if --detach flag is provided
 				const scriptPath = fileURLToPath(import.meta.url);
