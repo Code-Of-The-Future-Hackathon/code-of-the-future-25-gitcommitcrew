@@ -14,7 +14,12 @@ import { SystemData } from "@services/system/models";
 
 let _io: Server | undefined = undefined;
 
-const userSocketMap = new Map<string, Set<string>>();
+const userSocketMap = new Map<
+	string,
+	{ requestedData: Data[]; connection: string }
+>();
+
+const hostSocketMap = new Map<string, { connection: string }>();
 
 const setIO = (io: Server) => {
 	_io = io;
@@ -33,13 +38,17 @@ const setupServerListeners = (io: Server) => {
 			| undefined;
 
 		if (user) {
-			const socketIds = userSocketMap.get(user.id);
+			const socketId = userSocketMap.get(user.id);
 
-			if (!socketIds) {
-				userSocketMap.set(user.id, new Set());
+			if (!socketId) {
+				userSocketMap.set(user.id, {
+					requestedData: [],
+					connection: socket.id,
+				});
+			} else {
+				socket.disconnect();
+				return;
 			}
-
-			userSocketMap.get(user.id)?.add(socket.id);
 		}
 
 		socket.on(events.HOST_NEW_DATA, async (data: EventData) => {
@@ -47,16 +56,26 @@ const setupServerListeners = (io: Server) => {
 				data.passwordHash,
 			);
 
-			if (usersOrganization && usersOrganization.length > 0) {
-				for (const { userId } of usersOrganization) {
-					emitToUser(userId, events.HOST_NEW_DATA, data);
-				}
-			}
-
 			const host = await getHostByPasswordHash(data.passwordHash);
 
 			if (!host) {
 				return;
+			}
+
+			if (!hostSocketMap.has(host.id)) {
+				hostSocketMap.set(host.id, { connection: socket.id });
+			}
+
+			if (usersOrganization && usersOrganization.length > 0) {
+				for (const { userId } of usersOrganization) {
+					const userSocket = userSocketMap.get(userId);
+					if (userSocket && userSocket.requestedData.includes(data.type)) {
+						emitToSocket(userId, false, events.SERVER_NEW_DATA, {
+							hostId: host.id,
+							data,
+						});
+					}
+				}
 			}
 
 			await db
@@ -65,13 +84,8 @@ const setupServerListeners = (io: Server) => {
 		});
 
 		socket.on(
-			events.SERVER_GET_DATA_BY_TYPE,
-			async (data: {
-				type: Data;
-				hostId: string;
-				after: string;
-				before: string;
-			}) => {
+			events.CLIENT_REQUEST_DATA,
+			async (hostId: string, data: Data[]) => {
 				if (!user) {
 					return;
 				}
@@ -84,27 +98,34 @@ const setupServerListeners = (io: Server) => {
 
 				const host = await getHostByOrganizationIdAndHostId(
 					userOrganization.organizationId,
-					data.hostId,
+					hostId,
 				);
 
 				if (!host) {
 					return;
 				}
 
-				const systemData = (
-					await db
-						.select()
-						.from(SystemData)
-						.where(
-							and(
-								eq(SystemData.hostId, data.hostId),
-								eq(SystemData.type, data.type),
-							),
-						)
-						.orderBy(desc(SystemData.createdAt))
-				)[0];
+				const socket = userSocketMap.get(user.id);
 
-				socket.emit(events.SERVER_GET_DATA_BY_TYPE, systemData);
+				if (!socket) {
+					return;
+				}
+
+				// for (const type of socket.requestedData) {
+				// 	emitToSocket(host.id, true, events.HOST_UPDATE_INTERVAL, {
+				// 		type,
+				// 		isFast: false,
+				// 	});
+				// }
+
+				socket.requestedData = data;
+
+				// for (const type of data) {
+				// 	emitToSocket(host.id, true, events.HOST_UPDATE_INTERVAL, {
+				// 		type,
+				// 		isFast: true,
+				// 	});
+				// }
 			},
 		);
 
@@ -112,15 +133,7 @@ const setupServerListeners = (io: Server) => {
 			logger.info("Client disconnected");
 
 			if (user) {
-				const userSockets = userSocketMap.get(user.id) ?? new Set();
-
-				userSockets.delete(socket.id);
-
-				if (userSockets.size === 0) {
-					userSocketMap.delete(user.id);
-				} else {
-					userSocketMap.set(user.id, userSockets);
-				}
+				userSocketMap.delete(user.id);
 			}
 		});
 
@@ -130,18 +143,21 @@ const setupServerListeners = (io: Server) => {
 	});
 };
 
-function emitToUser(userId: string, eventName: string, data: unknown) {
+function emitToSocket(
+	id: string,
+	isHost: boolean,
+	eventName: string,
+	data: unknown,
+) {
 	const io = getIO();
 
-	const socketIds = userSocketMap.get(userId);
+	const socket = isHost ? hostSocketMap.get(id) : userSocketMap.get(id);
 
-	if (!socketIds) {
+	if (!socket?.connection) {
 		return;
 	}
 
-	for (const socketId of socketIds) {
-		io?.to(socketId).emit(eventName, data);
-	}
+	io?.to(socket.connection).emit(eventName, data);
 }
 
-export { setIO, getIO, setupServerListeners, emitToUser };
+export { setIO, getIO, setupServerListeners, emitToSocket as emitToUser };

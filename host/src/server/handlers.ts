@@ -1,5 +1,5 @@
 import type { Data } from "@/../../events";
-import { scrapers } from "@/scraper/scraper";
+import { DEFAULT_TIMER, FAST_TIMER, scrapers } from "@/scraper/scraper";
 import { isAuth } from "./auth";
 
 const getScraper = (data: Data) => scrapers[data] || false;
@@ -31,17 +31,11 @@ const terminateScraper = async (passwordHash: string, data: Data) => {
 	scraper.terminate();
 };
 
-const changeIntervalSpeed = async (
-	passwordHash: string,
-	data: Data,
-	interval: number,
-) => {
-	if (!isAuth(passwordHash)) return;
-
+const changeIntervalSpeed = async (data: Data, isFast: boolean) => {
 	const scraper = getScraper(data);
 	if (!scraper) return;
 
-	scraper.update(undefined, interval);
+	scraper.update(undefined, isFast ? FAST_TIMER : DEFAULT_TIMER);
 };
 
 const changeQuery = async (passwordHash: string, data: Data, query: object) => {

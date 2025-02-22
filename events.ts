@@ -5,7 +5,10 @@ const enum events {
 	HOST_UPDATE_QUERY = "host:update:query",
 	HOST_STOP = "host:stop",
 	HOST_START = "host:start",
-	HOST_TERMINATE = "host:terminate"
+	HOST_TERMINATE = "host:terminate",
+
+	SERVER_NEW_DATA = "server:new:data",
+	CLIENT_REQUEST_DATA = "client:request:data",
 }
 
 type Data =

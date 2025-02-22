@@ -20,11 +20,9 @@ const operation = z.object({
 });
 
 const updateTimer = z.object({
-	passwordHash: z.string(),
 	data: z
-		.string()
-		.refine((data) =>
-			[
+		.array(
+			z.enum([
 				"cpu",
 				"memory",
 				"system",
@@ -32,10 +30,10 @@ const updateTimer = z.object({
 				"network",
 				"disk",
 				"process",
-			].includes(data),
+			]),
 		)
-		.transform((data) => data as Data),
-	timer: z.number().min(100),
+		.min(1),
+	isFast: z.boolean(),
 });
 
 const updateQuery = z.object({

@@ -38,7 +38,9 @@ const connectToSocket = () => {
 		const { success, data } = validation.updateTimer.safeParse(msg);
 		if (!success) return;
 
-		await op.changeIntervalSpeed(data.passwordHash, data.data, data.timer);
+		for (const type of data.data) {
+			await op.changeIntervalSpeed(type, data.isFast);
+		}
 	});
 
 	_io.on(events.HOST_UPDATE_QUERY, async (msg: any) => {
