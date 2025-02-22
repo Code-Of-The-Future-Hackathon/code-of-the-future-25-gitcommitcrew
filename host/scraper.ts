@@ -1,43 +1,135 @@
 import { get } from "systeminformation";
+import { io } from "@/server/config/socket";
+import { events, type Data } from "../events";
+import { globalConfig } from "./src";
 
-/*
-Init: const scraper = new Scraper({cpu: "speed, voltage"}, 400)
-Update: scraper.update({...scraper.query, mem: "cached"}, 5000)
-Kill: scrapper.kill()
-*/
+const DEFAULT_TIMER = 60 * 1000;
+const LONG_TIMER = 5 * DEFAULT_TIMER;
 
 class Scraper {
-  timer: number;
-  query: object;
-  interval: any;
+	query: object;
+	type: Data;
+	timer: number;
+	running: boolean;
+	private interval: Timer | null;
 
-  start(): void {
-    this.interval = setInterval(
-      // TODO: Implement info forwarding to server
-      async () => get(this.query).then(console.log),
-      this.timer,
-    );
-  }
+	constructor(query: object, type: Data, timer: number) {
+		this.query = query;
+		this.type = type;
+		this.timer = timer;
 
-  update(query: object, timer: number): void {
-    this.query = query
-    this.timer = timer;
-    clearInterval(this.interval);
-    this.start()
-  }
+		this.interval = null;
+		this.running = false;
+	}
 
-  kill(): void {
-    clearInterval(this.interval)
-    console.log(this.interval)
-  }
+	configure(query: object, timer: number) {
+		this.query = query;
+		this.timer = timer;
 
-  constructor(query: object, timer: number) {
-    this.query = query;
-    this.timer = timer;
-    this.start()
-  }
+		return this;
+	}
+
+	start() {
+		if (this.timer) {
+			this.interval = setInterval(async () => {
+				const data = await get(this.query);
+				io?.emit(events.HOST_NEW_DATA, {
+					type: this.type,
+					data,
+					passwordHash: globalConfig.passwordHash,
+				});
+			}, this.timer);
+			this.running = true;
+		}
+
+		return this;
+	}
+
+	pause() {
+		if (this.interval) clearInterval(this.interval);
+		this.running = false;
+
+		return this;
+	}
+
+	update(query?: object, timer?: number) {
+		if (!query && !timer) return this;
+
+		this.pause();
+		this.configure(query ?? this?.query, timer ?? this.timer);
+		this.start();
+
+		return this;
+	}
+
+	kill() {
+		this.pause();
+		this.query = {};
+		this.timer = 0;
+		this.interval = null;
+		this.running = false;
+
+		return this;
+	}
 }
 
-// const scrapper = new Scraper({cpu: "speed"}, 500)
-// setTimeout(() => scrapper.update({...scrapper.query, mem: "cached"}, 1000), 5000)
-// setTimeout(() => scrapper.kill(), 8000)
+const scrapers: Record<Data, Scraper> = {
+	cpu: new Scraper(
+		{
+			cpu: "manufacturer, brand, speed, speedMin, speedMax, cores, physicalCores, processors",
+			cpuCurrentSpeed: "*",
+			cpuTemperature: "*",
+		},
+		"cpu",
+		DEFAULT_TIMER,
+	),
+	memory: new Scraper(
+		{
+			mem: "total, free, used, active, slab, available, swaptotal, swapused, swapfree",
+		},
+		"memory",
+		DEFAULT_TIMER,
+	),
+	system: new Scraper(
+		{
+			osInfo: "platform, distro, kernel, hostname",
+			users: "*",
+		},
+		"system",
+		LONG_TIMER,
+	),
+	battery: new Scraper(
+		{
+			battery:
+				"hasBattery, isCharging, maxCapacity, currentCapacity, percent, timeRemaining, voltage, manufacturer",
+		},
+		"battery",
+		DEFAULT_TIMER,
+	),
+	process: new Scraper(
+		{
+			currentLoad:
+				"avgLoad, currentLoad, currentLoadUser, currentLoadSystem, currentLoadNice, currentLoadIdle, currentLoadIrq, rawCurrentLoad, cpus",
+			processes: "*",
+		},
+		"process",
+		DEFAULT_TIMER,
+	),
+	network: new Scraper(
+		{
+			networkStats: "*",
+			networkConnections: "*",
+		},
+		"network",
+		DEFAULT_TIMER,
+	),
+	disk: new Scraper({ diskLayout: "*" }, "disk", LONG_TIMER),
+};
+
+const startScrapers = () => {
+	for (const scraper of Object.values(scrapers)) {
+		scraper.start();
+	}
+};
+
+export { scrapers, startScrapers };

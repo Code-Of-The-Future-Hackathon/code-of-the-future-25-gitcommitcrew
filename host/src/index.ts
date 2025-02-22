@@ -9,6 +9,7 @@ import type { Config } from "./types/config";
 import axios from "axios";
 import si, { networkInterfaces, osInfo } from "systeminformation";
 import { connectToSocket } from "./server/config/socket";
+import { startScrapers } from "../scraper";
 
 export let globalConfig: Config = {
 	initialized: true,
@@ -121,6 +122,7 @@ async function runMonitoringService() {
 			.catch((err) => {});
 
 		connectToSocket();
+		startScrapers();
 	} else {
 		globalConfig = await runSetup();
 	}
