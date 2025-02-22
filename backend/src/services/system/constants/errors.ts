@@ -9,12 +9,12 @@ enum SYSTEM_ERROR_KEYS {
 
 const SystemErrors: Record<SYSTEM_ERROR_KEYS, IAppError> = {
 	[SYSTEM_ERROR_KEYS.COULD_NOT_CREATE]: {
-		message_error: "The host could not be created.",
+		message_error: "Could not be created.",
 		status_code: 500,
 		service: ServiceType.SYSTEM,
 	},
 	[SYSTEM_ERROR_KEYS.NOT_FOUND]: {
-		message_error: "No host was found.",
+		message_error: "Nothing was found.",
 		status_code: 400,
 		service: ServiceType.SYSTEM,
 	},

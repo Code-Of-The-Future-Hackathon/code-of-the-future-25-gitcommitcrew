@@ -1,7 +1,16 @@
 import { Server, Socket } from "socket.io";
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 
 import logger from "@logger";
-import { events } from "../../../../events";
+import { Data, EventData, events } from "../../../../events";
+import {
+	getHostByOrganizationIdAndHostId,
+	getHostByPasswordHash,
+	getUserOrganizationByUserId,
+	getUsersFromOrganizationByPasswordHash,
+} from "@services/system/system.service";
+import { db } from "@config/db";
+import { SystemData } from "@services/system/models";
 
 let _io: Server | undefined = undefined;
 
@@ -33,9 +42,71 @@ const setupServerListeners = (io: Server) => {
 			userSocketMap.get(user.id)?.add(socket.id);
 		}
 
-		socket.on(events.HOST_NEW_DATA, (data) => {
-			logger.info(data);
+		socket.on(events.HOST_NEW_DATA, async (data: EventData) => {
+			const usersOrganization = await getUsersFromOrganizationByPasswordHash(
+				data.passwordHash,
+			);
+
+			if (usersOrganization && usersOrganization.length > 0) {
+				for (const { userId } of usersOrganization) {
+					emitToUser(userId, events.HOST_NEW_DATA, data);
+				}
+			}
+
+			const host = await getHostByPasswordHash(data.passwordHash);
+
+			if (!host) {
+				return;
+			}
+
+			await db
+				.insert(SystemData)
+				.values({ hostId: host.id, type: data.type, data });
 		});
+
+		socket.on(
+			events.SERVER_GET_DATA_BY_TYPE,
+			async (data: {
+				type: Data;
+				hostId: string;
+				after: string;
+				before: string;
+			}) => {
+				if (!user) {
+					return;
+				}
+
+				const userOrganization = await getUserOrganizationByUserId(user.id);
+
+				if (!userOrganization) {
+					return;
+				}
+
+				const host = await getHostByOrganizationIdAndHostId(
+					userOrganization.organizationId,
+					data.hostId,
+				);
+
+				if (!host) {
+					return;
+				}
+
+				const systemData = (
+					await db
+						.select()
+						.from(SystemData)
+						.where(
+							and(
+								eq(SystemData.hostId, data.hostId),
+								eq(SystemData.type, data.type),
+							),
+						)
+						.orderBy(desc(SystemData.createdAt))
+				)[0];
+
+				socket.emit(events.SERVER_GET_DATA_BY_TYPE, systemData);
+			},
+		);
 
 		socket.on("disconnect", () => {
 			logger.info("Client disconnected");
@@ -65,7 +136,6 @@ function emitToUser(userId: string, eventName: string, data: unknown) {
 	const socketIds = userSocketMap.get(userId);
 
 	if (!socketIds) {
-		logger.info({ userId }, "User is not connected");
 		return;
 	}
 

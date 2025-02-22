@@ -4,11 +4,13 @@ import {
 	addNewHost as addNewHostService,
 	claimHost as claimHostService,
 	getHosts,
+	getLatestData as getLatestDataService,
 } from "@services/system/system.service";
 
 import asyncErrorHandler from "@utils/asyncErrorHandler";
 import { TNewHost } from "@services/system/validations/addNewHost";
 import { TClaimHost } from "@services/system/validations/claimHost";
+import { TGetLatestData } from "@services/system/validations/getLatestData";
 
 const addNewHost = asyncErrorHandler(async (req: Request, res: Response) => {
 	const host = req.body as TNewHost;
@@ -42,4 +44,18 @@ const getUnclaimedHosts = asyncErrorHandler(
 	},
 );
 
-export { addNewHost, claimHost, getClaimedHosts, getUnclaimedHosts };
+const getLatestData = asyncErrorHandler(async (req: Request, res: Response) => {
+	const { hostId, types } = req.body as TGetLatestData;
+
+	const latestData = await getLatestDataService(req.user.id, hostId, types);
+
+	res.json({ success: true, data: latestData });
+});
+
+export {
+	addNewHost,
+	claimHost,
+	getClaimedHosts,
+	getUnclaimedHosts,
+	getLatestData,
+};

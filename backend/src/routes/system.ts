@@ -3,12 +3,14 @@ import {
 	addNewHost,
 	claimHost,
 	getClaimedHosts,
+	getLatestData,
 	getUnclaimedHosts,
 } from "@controllers/system";
 import { validateBodySchema } from "@middlewares/validation";
 import { addNewHostValidation } from "@services/system/validations/addNewHost";
 import { isAuth } from "@middlewares/auth";
 import { claimHostValidation } from "@services/system/validations/claimHost";
+import { getLatestDataValidation } from "@services/system/validations/getLatestData";
 
 const router = Router();
 
@@ -23,6 +25,13 @@ router.post(
 	isAuth,
 	validateBodySchema(claimHostValidation),
 	claimHost,
+);
+
+router.post(
+	"/host/latest",
+	isAuth,
+	validateBodySchema(getLatestDataValidation),
+	getLatestData,
 );
 
 export default router;
