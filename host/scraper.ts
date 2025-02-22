@@ -13,6 +13,15 @@ class Scraper {
 	running: boolean;
 	private interval: Timer | null;
 
+	private emit = async () => {
+		const data = await get(this.query);
+		io?.emit(events.HOST_NEW_DATA, {
+			type: this.type,
+			data,
+			passwordHash: globalConfig.passwordHash,
+		});
+	}
+
 	constructor(query: object, type: Data, timer: number) {
 		this.query = query;
 		this.type = type;
@@ -31,14 +40,8 @@ class Scraper {
 
 	start() {
 		if (this.timer) {
-			this.interval = setInterval(async () => {
-				const data = await get(this.query);
-				io?.emit(events.HOST_NEW_DATA, {
-					type: this.type,
-					data,
-					passwordHash: globalConfig.passwordHash,
-				});
-			}, this.timer);
+			this.emit()
+			this.interval = setInterval(() => this.emit(), this.timer);
 			this.running = true;
 		}
 
