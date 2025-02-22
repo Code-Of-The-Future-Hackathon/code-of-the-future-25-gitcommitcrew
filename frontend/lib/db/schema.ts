@@ -40,42 +40,28 @@ export const systemDataTable = pgTable("systemData", {
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const hostToUser = pgTable("userToHost", {
-	id: text("id").primaryKey().$defaultFn(randomUUID),
-	userId: text("userId")
-		.notNull()
-		.references(() => userTable.id),
-	hostId: text("hostId")
-		.notNull()
-		.references(() => hostTable.id),
-});
+export const userHostTable = pgTable(
+	"user_host",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => userTable.id),
+		hostId: text("host_id")
+			.notNull()
+			.references(() => hostTable.id),
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.hostId] })],
+);
 
 export const hostTable = pgTable("host", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	ip: text("ip").notNull(),
-	claimed: boolean("claimed").default(false),
+	claimed: boolean("claimed").notNull().default(false),
 	password: text("password").notNull(),
 	mac: text("mac").notNull().unique(),
 	hostname: text("hostname").notNull(),
 	port: integer("port").notNull(),
 	org: text("org").notNull(),
-	tunnelPort: integer("tunnel_port"),
-	tunnelActive: boolean("tunnel_active").default(false),
-	tunnelSecret: text("tunnel_secret"),
-});
-
-export const sshSessionTable = pgTable("ssh_session", {
-	id: text("id").primaryKey().$defaultFn(randomUUID),
-	hostId: text("host_id")
-		.notNull()
-		.references(() => hostTable.id),
-	userId: text("user_id")
-		.notNull()
-		.references(() => userTable.id),
-	tunnelPort: integer("tunnel_port").notNull(),
-	startedAt: timestamp("started_at").notNull(),
-	endedAt: timestamp("ended_at"),
-	status: text("status").notNull(), // 'active', 'terminated', 'failed'
 });
 
 export const permissionTable = pgTable("permission", {

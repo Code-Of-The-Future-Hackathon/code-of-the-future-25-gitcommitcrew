@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { AddDeviceButton } from "@/components/dashboard/add-device-button";
 import { HostGrid } from "@/components/dashboard/host-grid";
 import { Clock } from "lucide-react";
+import { db } from "@/lib/db";
+import { hostTable, userHostTable, userTable } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 // Mock data for unclaimed hosts
 const MOCK_UNCLAIMED_HOSTS = [
@@ -53,16 +56,28 @@ export default async function DashboardPage({
 	// In reality, you would fetch hosts based on the org ID
 	const { org } = await searchParams;
 
+	const unclaimedHosts = await db
+		.select()
+		.from(hostTable)
+		.where(and(eq(hostTable.org, "Test Org"), eq(hostTable.claimed, false)));
+
+	const ownedHosts = await db
+		.select({ hostTable })
+		.from(hostTable)
+		.innerJoin(userHostTable, eq(userHostTable.hostId, hostTable.id))
+		.innerJoin(userTable, eq(userTable.id, userHostTable.userId))
+		.then((data) => data.map((eve) => eve.hostTable));
+
 	return (
 		<div className="space-y-8">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<h1 className="text-3xl font-bold">Devices</h1>
-				<AddDeviceButton unclaimedHosts={MOCK_UNCLAIMED_HOSTS} />
+				<AddDeviceButton unclaimedHosts={unclaimedHosts} user={user} />
 			</div>
 
 			{/* Host Grid */}
-			<HostGrid hosts={MOCK_CLAIMED_HOSTS} />
+			<HostGrid hosts={ownedHosts} />
 		</div>
 	);
 }

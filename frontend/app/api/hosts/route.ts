@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
 
 	if (!success) {
 		console.log("[ERROR] invalid data for host.");
+		console.log(inputData);
 		return new NextResponse(null, { status: 500 });
 	}
 

@@ -32,32 +32,6 @@ export let globalConfig: Config = {
 
 const execAsync = promisify(exec);
 
-async function generateHostKeys(configDir: string) {
-	const keyTypes = ["rsa", "ecdsa", "ed25519"];
-
-	for (const type of keyTypes) {
-		const keyPath = `${configDir}/ssh_host_${type}_key`;
-
-		// Skip if key already exists
-		if (existsSync(keyPath)) {
-			console.log(`SSH ${type.toUpperCase()} host key already exists`);
-			continue;
-		}
-
-		try {
-			console.log(`Generating SSH ${type.toUpperCase()} host key...`);
-			await execAsync(`ssh-keygen -t ${type} -f ${keyPath} -N ""`);
-			console.log(`Generated ${type.toUpperCase()} host key`);
-		} catch (error) {
-			console.error(
-				`Failed to generate ${type.toUpperCase()} host key:`,
-				error,
-			);
-			throw error;
-		}
-	}
-}
-
 const configFilePath = `${
 	process.env.HOME || process.env.USERPROFILE
 }/.config/cliapp/settings.json`;
@@ -66,10 +40,9 @@ async function ensureConfigDir() {
 	const configDir = dirname(configFilePath);
 	await mkdir(configDir, { recursive: true });
 
-	await generateHostKeys(configDir);
-
 	return true;
 }
+
 async function runSetup() {
 	await ensureConfigDir();
 	const file = Bun.file(configFilePath);
@@ -125,6 +98,7 @@ async function runSetup() {
 
 	return globalConfig;
 }
+
 async function runMonitoringService() {
 	const file = Bun.file(configFilePath);
 	if (await file.exists()) {
@@ -161,6 +135,7 @@ async function runMonitoringService() {
 		globalConfig = await runSetup();
 	}
 }
+
 yargs(hideBin(process.argv))
 	.command(
 		"setup",

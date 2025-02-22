@@ -7,19 +7,11 @@ services:
       dockerfile: host/Dockerfile
     ports:
       - "3001:3000" # Host API
-      - "2222:2222" # SSH Jump Server
-      - "2223:2223" # WebSocket
     environment:
       - HOST_ID=1
       - SERVER_URL=http://frontend:3000
-      - SSH_HOST_KEY_DIR=/app/.ssh
-    volumes:
-      - ssh_keys:/app/.ssh
     networks:
       - app_network
-
-volumes:
-  ssh_keys:
 
 networks:
   app_network:

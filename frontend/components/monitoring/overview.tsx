@@ -6,12 +6,13 @@ import { Terminal, AlertCircle, Clock, ArrowUpRight } from "lucide-react";
 import { SystemInfo, SystemMetrics } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { SSHConnect } from "./ssh-connect";
+import { User } from "@/lib/db/schema";
 
 interface OverviewProps {
 	systemInfo: SystemInfo;
 	metrics: SystemMetrics;
 	deviceId: string;
+	user: User;
 }
 
 export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
@@ -48,7 +49,6 @@ export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
 						Last updated: {new Date().toLocaleTimeString()}
 					</p>
 				</div>
-				<SSHConnect deviceId={deviceId} deviceName={systemInfo.hostname} />
 			</div>
 
 			{/* Quick Stats */}

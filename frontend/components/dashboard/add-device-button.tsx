@@ -1,5 +1,6 @@
 "use client";
 
+import { claimHost } from "@/actions/claim-device";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -10,10 +11,13 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { db } from "@/lib/db";
+import { hostTable, User } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { Plus, Server } from "lucide-react";
 import { useState } from "react";
 
-interface UnclaimedHost {
+export interface UnclaimedHost {
 	id: string;
 	hostname: string;
 	mac: string;
@@ -23,8 +27,10 @@ interface UnclaimedHost {
 }
 
 export function AddDeviceButton({
+	user,
 	unclaimedHosts,
 }: {
+	user: User;
 	unclaimedHosts: UnclaimedHost[];
 }) {
 	const [open, setOpen] = useState(false);
@@ -32,14 +38,14 @@ export function AddDeviceButton({
 	const [password, setPassword] = useState("");
 
 	const handleClaim = async () => {
-		// In reality, this would make an API call to verify the password
-		// and claim the device
-		console.log(
-			"Claiming device:",
-			selectedHost?.hostname,
-			"with password:",
-			password,
-		);
+		if (!selectedHost) return;
+
+		const res = await claimHost(user.id, password, selectedHost);
+
+		if (res?.error) {
+			console.error("Bad");
+		}
+
 		setOpen(false);
 		setSelectedHost(null);
 		setPassword("");

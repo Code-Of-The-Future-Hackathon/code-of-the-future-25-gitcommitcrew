@@ -1,22 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Host } from "@/lib/db/schema";
 import { Server, HardDrive, Cpu, MemoryStick } from "lucide-react";
-
-interface Host {
-	id: string;
-	hostname: string;
-	mac: string;
-	ip: string;
-	org: string;
-	claimed: boolean;
-	stats?: {
-		cpu: number;
-		memory: number;
-		disk: number;
-		status: string;
-	};
-}
+import { Button } from "../ui/button";
+import Link from "next/link";
 
 export function HostGrid({ hosts }: { hosts: Host[] }) {
 	if (hosts.length === 0) {
@@ -45,7 +33,7 @@ function HostCard({ host }: { host: Host }) {
 		<Card className="transition-shadow hover:shadow-lg">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="text-lg font-medium">{host.hostname}</CardTitle>
-				<StatusBadge status={host.stats?.status || "offline"} />
+				<StatusBadge status={host.claimed ? "Claimed" : "???"} />
 			</CardHeader>
 			<CardContent>
 				<div className="grid grid-cols-2 gap-4">
@@ -69,6 +57,13 @@ function HostCard({ host }: { host: Host }) {
 						label="IP"
 						value={host.ip}
 					/>
+				</div>
+				<div className="my-2 flex justify-end">
+					<Link href={`/dashboard/devices/${host.id}`}>
+						<Button className="bg-blue-500 text-white shadow-blue-600">
+							Manage
+						</Button>
+					</Link>
 				</div>
 			</CardContent>
 		</Card>
