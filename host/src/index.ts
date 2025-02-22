@@ -6,17 +6,25 @@ import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./server/app";
 import type { Config } from "./types/config";
-export let globalConfig: Config | null = null;
-const configFilePath = `${
-	process.env.HOME || process.env.USERPROFILE
-}/.config/cliapp/settings.json`;
-const defaultConfig: Config = {
+import axios from "axios";
+import si, { networkInterfaces } from "systeminformation";
+
+export let globalConfig: Config = {
 	initialized: true,
 	lastRun: new Date().toISOString(),
 	lastUpdate: new Date().toISOString(),
 	updateCount: 0,
-	password: null,
+	hostname: "",
+	org: "",
+	password: "",
+	port: 3000,
+	serverUrl: "",
 };
+
+const configFilePath = `${
+	process.env.HOME || process.env.USERPROFILE
+}/.config/cliapp/settings.json`;
+
 async function ensureConfigDir() {
 	const configDir = dirname(configFilePath);
 	await mkdir(configDir, { recursive: true });
@@ -31,11 +39,42 @@ async function runSetup() {
 		globalConfig = existingConfig;
 		return existingConfig;
 	}
-	const passwordInput = prompt("Enter a password for the host: ");
-	defaultConfig.password = passwordInput;
-	await Bun.write(configFilePath, JSON.stringify(defaultConfig));
+
+	let hostname: string | null = null;
+	do {
+		hostname = prompt("Enter a hostname for the host: ");
+	} while (!hostname);
+
+	let org: string | null = null;
+	do {
+		org = prompt("Enter an org name for the host: ");
+	} while (!org);
+
+	let password: string | null = null;
+	do {
+		password = prompt("Enter a password for the host (min 4 characters): ");
+	} while (!password || password.length < 4);
+
+	let serverUrl: string | null = null;
+	do {
+		serverUrl = prompt("Enter the main server's url: ");
+	} while (!serverUrl);
+
+	let port: number | null = null;
+	do {
+		port = Number(
+			prompt("Enter the port on which the host's server will run on: "),
+		);
+	} while (!serverUrl || isNaN(port));
+
+	globalConfig.org = org;
+	globalConfig.password = password;
+	globalConfig.serverUrl = serverUrl;
+	globalConfig.port = port;
+
+	await Bun.write(configFilePath, JSON.stringify(globalConfig));
 	console.log("Created new configuration file");
-	globalConfig = defaultConfig;
+
 	return globalConfig;
 }
 async function runMonitoringService() {
@@ -46,7 +85,21 @@ async function runMonitoringService() {
 		currentConfig.updateCount = (currentConfig.updateCount || 0) + 1;
 		await Bun.write(configFilePath, JSON.stringify(currentConfig, null, 2));
 		globalConfig = currentConfig;
-		await startServer(3000, "http://localhost:3000");
+
+		await startServer(globalConfig.port);
+
+		const networkInterface = (await networkInterfaces(
+			"default",
+		)) as si.Systeminformation.NetworkInterfacesData;
+
+		await axios.post(`${globalConfig.serverUrl}/hosts`, {
+			hostname: globalConfig.hostname,
+			org: globalConfig.org,
+			password: await Bun.password.hash(globalConfig.password),
+			port: globalConfig.port,
+			ip: networkInterface.ip4,
+			mac: networkInterface.mac,
+		});
 	} else {
 		globalConfig = await runSetup();
 	}
@@ -60,12 +113,12 @@ yargs(hideBin(process.argv))
 				alias: "d",
 				type: "boolean",
 				description: "Run the service in the background",
-				default: false
+				default: false,
 			});
 		},
 		async (argv: any) => {
 			await runSetup();
-			
+
 			if (argv.detach) {
 				// Run in background if --detach flag is provided
 				const scriptPath = fileURLToPath(import.meta.url);
@@ -101,7 +154,7 @@ yargs(hideBin(process.argv))
 				alias: "d",
 				type: "boolean",
 				description: "Run the service in the background",
-				default: false
+				default: false,
 			});
 		},
 		async (argv: any) => {

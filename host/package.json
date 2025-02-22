@@ -1,7 +1,10 @@
 {
-	"name": "sysinfo",
+	"name": "datasentry",
 	"module": "index.ts",
 	"type": "module",
+	"scripts": {
+		"dev:setup": "./scripts/dev:setup.sh"
+	},
 	"devDependencies": {
 		"@types/bun": "latest",
 		"@types/cookie-parser": "^1.4.8",
@@ -13,6 +16,7 @@
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
+		"axios": "^1.7.9",
 		"body-parser": "^1.20.3",
 		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.5",
