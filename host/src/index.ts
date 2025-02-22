@@ -67,6 +67,7 @@ async function runSetup() {
 		);
 	} while (!serverUrl || isNaN(port));
 
+	globalConfig.hostname = hostname;
 	globalConfig.org = org;
 	globalConfig.password = password;
 	globalConfig.serverUrl = serverUrl;
@@ -148,42 +149,5 @@ yargs(hideBin(process.argv))
 			}
 		},
 	)
-	.command(
-		"run",
-		"Run the monitoring service",
-		(yargs) => {
-			return yargs.option("detach", {
-				alias: "d",
-				type: "boolean",
-				description: "Run the service in the background",
-				default: false,
-			});
-		},
-		async (argv: any) => {
-			if (argv.detach) {
-				// Self-detach if run with --detach flag
-				const scriptPath = fileURLToPath(import.meta.url);
-				const child = spawn(process.execPath, [scriptPath, "run"], {
-					detached: true,
-					stdio: "ignore",
-					env: process.env,
-				});
-				child.unref();
-				console.log(
-					`Background monitoring service started with PID ${child.pid}`,
-				);
-				process.exit(0);
-			} else {
-				await runMonitoringService();
-				const shutdown = () => {
-					console.log("Shutting down monitoring service...");
-					process.exit(0);
-				};
-				process.on("SIGINT", shutdown);
-				process.on("SIGTERM", shutdown);
-				process.stdin.resume();
-			}
-		},
-	)
-	.demandCommand(1, "You need to provide a valid command (setup or run).")
+	.demandCommand(1, "You need to provide a valid command (setup).")
 	.help().argv;
