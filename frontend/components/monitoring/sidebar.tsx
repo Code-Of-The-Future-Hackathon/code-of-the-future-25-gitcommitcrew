@@ -10,6 +10,7 @@ import {
 	Settings,
 	Activity,
 	Server,
+	SquareFunction,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,6 +22,7 @@ const navigation = [
 	{ name: "Network", href: "/network", icon: Network },
 	{ name: "Storage", href: "/storage", icon: HardDrive },
 	{ name: "Settings", href: "/settings", icon: Settings },
+	{ name: "Processes", href: "/process", icon: SquareFunction },
 ];
 
 export function Sidebar({

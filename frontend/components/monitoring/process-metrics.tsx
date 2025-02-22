@@ -1,6 +1,5 @@
 "use client";
 
-import { MetricCard } from "./metric-card";
 import { useState } from "react";
 import { TimeInterval } from "@/types/monitoring";
 import {
@@ -12,6 +11,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CustomChart } from "./custom-chart";
 
 export function ProcessMetrics({ metrics }: { metrics: any }) {
 	const [interval, setInterval] = useState<TimeInterval>("5m");
@@ -19,22 +19,22 @@ export function ProcessMetrics({ metrics }: { metrics: any }) {
 	return (
 		<section id="processes" className="space-y-6">
 			<h2 className="text-2xl font-bold">Process Statistics</h2>
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-				<MetricCard
+			<div className="grid grid-cols-1 gap-6">
+				<CustomChart
 					title="Total Processes"
 					data={metrics.total}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => v.toString()}
 				/>
-				<MetricCard
+				<CustomChart
 					title="Running Processes"
 					data={metrics.running}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => v.toString()}
 				/>
-				<MetricCard
+				<CustomChart
 					title="Blocked Processes"
 					data={metrics.blocked}
 					interval={interval}
