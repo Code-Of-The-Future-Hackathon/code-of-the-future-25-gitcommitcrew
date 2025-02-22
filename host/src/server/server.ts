@@ -1,11 +1,9 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import http from "http";
 import bodyParser from "body-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-
-import mainRouter from "@/server/routes/index";
 
 const app = express();
 
@@ -26,12 +24,12 @@ app.use(
 	}),
 );
 
-app.use(mainRouter);
+app.get("/", (_: Request, res: Response) => {
+	res.send("GitCommitCrew");
+});
 
 const server = http.createServer(app);
 
-const startServer = async (port: number) => {
-	server.listen(port);
-};
+const startServer = async (port: number) => server.listen(port);
 
 export { startServer };

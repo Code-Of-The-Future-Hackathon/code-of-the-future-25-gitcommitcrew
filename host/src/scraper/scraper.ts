@@ -1,9 +1,10 @@
+import { config } from "@/index";
+import { io } from "@/server/socket";
 import { get } from "systeminformation";
-import { io } from "@/server/config/socket";
-import { events, type Data } from "../../../events";
-import { globalConfig } from "../../src";
-import { queries } from "./queries";
+import { events, type Data } from "@/../../events";
+import { queries } from "@/scraper/queries";
 
+const FAST_TIMER = 5 * 1000;
 const DEFAULT_TIMER = 60 * 1000;
 const LONG_TIMER = 5 * DEFAULT_TIMER;
 
@@ -19,8 +20,8 @@ class Scraper {
 		io?.emit(events.HOST_NEW_DATA, {
 			type: this.type,
 			data,
-			passwordHash: globalConfig.passwordHash,
-			mac: globalConfig.mac
+			passwordHash: config.passwordHash,
+			mac: config.mac,
 		});
 	};
 
@@ -79,37 +80,13 @@ class Scraper {
 }
 
 const scrapers: Record<Data, Scraper> = {
-	cpu: new Scraper(
-		queries.cpu,
-		"cpu",
-		DEFAULT_TIMER,
-	),
-	memory: new Scraper(
-		queries.memory,
-		"memory",
-		DEFAULT_TIMER,
-	),
-	system: new Scraper(
-		queries.system,
-		"system",
-		LONG_TIMER,
-	),
-	battery: new Scraper(
-		queries.battery,
-		"battery",
-		DEFAULT_TIMER,
-	),
-	process: new Scraper(
-		queries.process,
-		"process",
-		DEFAULT_TIMER,
-	),
-	network: new Scraper(
-		queries.network,
-		"network",
-		DEFAULT_TIMER,
-	),
-	disk: new Scraper(queries.disk, "disk", LONG_TIMER),
+	cpu: new Scraper(queries.cpu, "cpu", FAST_TIMER),
+	memory: new Scraper(queries.memory, "memory", FAST_TIMER),
+	system: new Scraper(queries.system, "system", LONG_TIMER),
+	battery: new Scraper(queries.battery, "battery", DEFAULT_TIMER),
+	process: new Scraper(queries.process, "process", DEFAULT_TIMER),
+	network: new Scraper(queries.network, "network", DEFAULT_TIMER),
+	disk: new Scraper(queries.disk, "disk", FAST_TIMER),
 };
 
 const startScrapers = () => {

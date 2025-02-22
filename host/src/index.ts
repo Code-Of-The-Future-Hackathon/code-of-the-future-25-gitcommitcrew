@@ -4,16 +4,16 @@ import { spawn } from "child_process";
 import { dirname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { startServer } from "./server/app";
-import type { Config } from "./types/config";
+import { startServer } from "./server/server";
+import type { Config } from "./type";
 import axios from "axios";
 import si, { networkInterfaces, osInfo } from "systeminformation";
-import { exec } from "child_process";
-import { promisify } from "util";
-import { connectToSocket } from "./server/config/socket";
+// import { exec } from "child_process";
+// import { promisify } from "util";
+import { connectToSocket } from "./server/socket";
 import { startScrapers } from "@/scraper/scraper";
 
-export let globalConfig: Config = {
+export let config: Config = {
 	initialized: true,
 	lastRun: new Date().toISOString(),
 	lastUpdate: new Date().toISOString(),
@@ -29,72 +29,83 @@ export let globalConfig: Config = {
 	mac: "",
 };
 
-const execAsync = promisify(exec);
+// const execAsync = promisify(exec);
 
-const configFilePath = `${process.env.HOME || process.env.USERPROFILE
-	}/.config/cliapp/settings.json`;
+const configFilePath = `${
+	process.env.HOME || process.env.USERPROFILE
+}/.config/cliapp/settings.json`;
 
 async function ensureConfigDir() {
-	const configDir = dirname(configFilePath);
-	await mkdir(configDir, { recursive: true });
+	const dir = dirname(configFilePath);
+	await mkdir(dir, { recursive: true });
 
 	return true;
 }
 
 async function runSetup() {
 	await ensureConfigDir();
+
 	const file = Bun.file(configFilePath);
 	if (await file.exists()) {
 		const existingConfig = await file.json();
 		console.log("Using existing configuration file");
-		globalConfig = existingConfig;
-		return existingConfig;
+		config = existingConfig;
+		return;
 	}
 
+	console.log("=== Host Configuration ===");
+
+	// Organisation
 	let org: string | null = null;
 	do {
-		org = prompt("Enter an org name for the host: ");
+		org = prompt("Enter organisation name: ");
 	} while (!org);
 
+	// Password
 	let password: string | null = null;
 	do {
-		password = prompt("Enter a password for the host (min 4 characters): ");
+		password = prompt("Enter a password: ");
+		if (!password || password?.length < 4)
+			console.log("Provide a longer password");
 	} while (!password || password.length < 4);
 
+	// Server Url
 	let serverUrl: string | null = null;
 	do {
-		serverUrl = prompt("Enter the main server's url: ");
+		serverUrl = prompt("Enter main server's url: ");
 	} while (!serverUrl);
 
+	// Port
 	let port: number | null = null;
 	do {
-		port = Number(
-			prompt("Enter the port on which the host's server will run on: "),
-		);
-	} while (!serverUrl || isNaN(port));
+		port = Number(prompt("Enter host server's port: "));
+	} while (isNaN(port));
 
+	// Network
+	type NetworkInterface = si.Systeminformation.NetworkInterfacesData;
 	const networkInterface = (await networkInterfaces(
 		"default",
-	)) as si.Systeminformation.NetworkInterfacesData;
+	)) as NetworkInterface;
 
+	// Ip
 	const { ip } = await axios
 		.get<{ ip: string }>("https://api.ipify.org?format=json")
 		.then((res) => res.data);
 
-	globalConfig.hostname = (await osInfo()).hostname;
-	globalConfig.org = org;
-	globalConfig.password = password;
-	globalConfig.passwordHash = await Bun.password.hash(password);
-	globalConfig.serverUrl = serverUrl;
-	globalConfig.port = port;
-	globalConfig.localIp = networkInterface.ip4;
-	globalConfig.ip = ip;
-	globalConfig.mac = networkInterface.mac;
+	config.hostname = (await osInfo()).hostname;
+	config.org = org;
+	config.password = password;
+	config.passwordHash = await Bun.password.hash(password);
+	config.serverUrl = serverUrl;
+	config.port = port;
+	config.localIp = networkInterface.ip4;
+	config.ip = ip;
+	config.mac = networkInterface.mac;
 
-	await Bun.write(configFilePath, JSON.stringify(globalConfig));
+	await Bun.write(configFilePath, JSON.stringify(config));
 	console.log("Created new configuration file");
 
-	return globalConfig;
+	return config;
 }
 
 async function runMonitoringService() {
@@ -104,18 +115,18 @@ async function runMonitoringService() {
 		currentConfig.lastUpdate = new Date().toISOString();
 		currentConfig.updateCount = (currentConfig.updateCount || 0) + 1;
 		await Bun.write(configFilePath, JSON.stringify(currentConfig, null, 2));
-		globalConfig = currentConfig;
+		config = currentConfig;
 
-		await startServer(globalConfig.port);
+		await startServer(config.port);
 
 		await axios
-			.post(`${globalConfig.serverUrl}/system/host`, {
-				hostname: globalConfig.hostname,
-				org: globalConfig.org,
-				passwordHash: globalConfig.passwordHash,
-				port: globalConfig.port,
-				ip: globalConfig.ip,
-				mac: globalConfig.mac,
+			.post(`${config.serverUrl}/system/host`, {
+				hostname: config.hostname,
+				org: config.org,
+				passwordHash: config.passwordHash,
+				port: config.port,
+				ip: config.ip,
+				mac: config.mac,
 			})
 			.catch((err) => {
 				console.error(err);
@@ -124,19 +135,20 @@ async function runMonitoringService() {
 		connectToSocket();
 		startScrapers();
 	} else {
-		globalConfig = await runSetup();
+		await runSetup();
 	}
 }
 
+// Cli helper
 yargs(hideBin(process.argv))
 	.command(
 		"setup",
-		"Run one-time setup and start the monitoring service",
+		"Configure host and start the monitoring service",
 		(yargs) => {
 			return yargs.option("detach", {
 				alias: "d",
 				type: "boolean",
-				description: "Run the service in the background",
+				description: "Run monitoring service in the background",
 				default: false,
 			});
 		},
