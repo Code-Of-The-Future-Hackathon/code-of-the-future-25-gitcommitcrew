@@ -1,19 +1,10 @@
-import { getCurrentSession } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowRight, Server, Shield, Activity, Globe } from "lucide-react";
 
-export default async function Home() {
-	const { user } = await getCurrentSession();
-
-	if (user) {
-		redirect("/dashboard");
-	}
-
+export default function Home() {
 	return (
 		<div className="from-background to-secondary min-h-screen bg-gradient-to-b">
-			{/* Hero Section */}
 			<div className="container mx-auto px-4 py-24">
 				<div className="mb-16 text-center">
 					<h1 className="from-primary mb-6 bg-gradient-to-r to-blue-600 bg-clip-text text-5xl font-bold text-transparent md:text-7xl">
