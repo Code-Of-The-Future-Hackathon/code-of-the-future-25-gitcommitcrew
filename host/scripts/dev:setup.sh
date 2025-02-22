@@ -3,5 +3,5 @@
 # Ignore SIGTERM
 trap '' SIGTERM
 
-pkill bun
+# pkill bun
 bun --bun run ./src/index.ts -- setup
