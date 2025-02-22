@@ -1,6 +1,5 @@
 "use client";
 
-import { claimHost } from "@/actions/claim-device";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -11,9 +10,8 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { db } from "@/lib/db";
-import { hostTable, User } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { api } from "@/lib/api";
+import { User } from "@/lib/db/schema";
 import { Plus, Server } from "lucide-react";
 import { useState } from "react";
 
@@ -40,11 +38,16 @@ export function AddDeviceButton({
 	const handleClaim = async () => {
 		if (!selectedHost) return;
 
-		const res = await claimHost(user.id, password, selectedHost);
+		const { data, status } = await api.post("/hosts", {
+			password,
+			hostId: selectedHost.id,
+		});
 
-		if (res?.error) {
+		if (status != 200) {
 			console.error("Bad");
 		}
+
+		console.log(data);
 
 		setOpen(false);
 		setSelectedHost(null);

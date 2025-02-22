@@ -2,6 +2,10 @@ const enum events {
 	HOST_CONNECTION = "host:connection",
 	HOST_NEW_DATA = "host:new:data",
 	HOST_UPDATE_INTERVAL = "host:update:interval",
+	HOST_UPDATE_QUERY = "host:update:query",
+	HOST_STOP = "host:stop",
+	HOST_START = "host:start",
+	HOST_TERMINATE = "host:terminate"
 }
 
 type Data =

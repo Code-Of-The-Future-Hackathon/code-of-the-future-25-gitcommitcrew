@@ -1,9 +1,9 @@
 import { get } from "systeminformation";
 import { io } from "@/server/config/socket";
-import { events, type Data } from "../events";
-import { globalConfig } from "./src";
+import { events, type Data } from "../../../events";
+import { globalConfig } from "../../src";
+import { queries } from "./queries";
 
-const FAST_TIMER = 5 * 1000;
 const DEFAULT_TIMER = 60 * 1000;
 const LONG_TIMER = 5 * DEFAULT_TIMER;
 
@@ -20,7 +20,7 @@ class Scraper {
 			type: this.type,
 			data,
 			passwordHash: globalConfig.passwordHash,
-			mac: globalConfig.mac,
+			mac: globalConfig.mac
 		});
 	};
 
@@ -50,7 +50,7 @@ class Scraper {
 		return this;
 	}
 
-	pause() {
+	stop() {
 		if (this.interval) clearInterval(this.interval);
 		this.running = false;
 
@@ -60,15 +60,15 @@ class Scraper {
 	update(query?: object, timer?: number) {
 		if (!query && !timer) return this;
 
-		this.pause();
+		this.stop();
 		this.configure(query ?? this?.query, timer ?? this.timer);
 		this.start();
 
 		return this;
 	}
 
-	kill() {
-		this.pause();
+	terminate() {
+		this.stop();
 		this.query = {};
 		this.timer = 0;
 		this.interval = null;
@@ -80,55 +80,36 @@ class Scraper {
 
 const scrapers: Record<Data, Scraper> = {
 	cpu: new Scraper(
-		{
-			cpu: "manufacturer, brand, speed, speedMin, speedMax, cores, physicalCores, processors",
-			cpuCurrentSpeed: "*",
-			cpuTemperature: "*",
-		},
+		queries.cpu,
 		"cpu",
-		FAST_TIMER,
+		DEFAULT_TIMER,
 	),
 	memory: new Scraper(
-		{
-			mem: "total, free, used, active, slab, available, swaptotal, swapused, swapfree",
-		},
+		queries.memory,
 		"memory",
-		FAST_TIMER,
+		DEFAULT_TIMER,
 	),
 	system: new Scraper(
-		{
-			osInfo: "platform, distro, kernel, hostname",
-			users: "*",
-		},
+		queries.system,
 		"system",
 		LONG_TIMER,
 	),
 	battery: new Scraper(
-		{
-			battery:
-				"hasBattery, isCharging, maxCapacity, currentCapacity, percent, timeRemaining, voltage, manufacturer",
-		},
+		queries.battery,
 		"battery",
 		DEFAULT_TIMER,
 	),
 	process: new Scraper(
-		{
-			currentLoad:
-				"avgLoad, currentLoad, currentLoadUser, currentLoadSystem, currentLoadNice, currentLoadIdle, currentLoadIrq, rawCurrentLoad, cpus",
-			processes: "*",
-		},
+		queries.process,
 		"process",
 		DEFAULT_TIMER,
 	),
 	network: new Scraper(
-		{
-			networkStats: "*",
-			networkConnections: "*",
-		},
+		queries.network,
 		"network",
 		DEFAULT_TIMER,
 	),
-	disk: new Scraper({ diskLayout: "*", fsSize: "*" }, "disk", FAST_TIMER),
+	disk: new Scraper(queries.disk, "disk", LONG_TIMER),
 };
 
 const startScrapers = () => {

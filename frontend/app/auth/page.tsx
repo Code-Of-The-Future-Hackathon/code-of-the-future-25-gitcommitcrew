@@ -1,26 +1,37 @@
-import { GithubIcon } from "lucide-react";
-import Link from "next/link";
+"use client";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
+	const router = useRouter();
+
+	const onClick = async () => {
+		const {
+			data: { data, success },
+		} = await api.get("/auth/google");
+
+		if (success) {
+			router.push(data);
+		}
+	};
+
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-background">
-			<div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+		<div className="bg-background flex min-h-screen items-center justify-center">
+			<div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
 				<Tabs defaultValue="login" className="w-full">
 					<TabsList className="mb-6 flex">
 						<TabsTrigger
 							value="login"
-							className="flex-1 px-4 py-2 border border-primary text-primary 
-                         data-[state=active]:bg-primary data-[state=active]:text-white 
-                         rounded-l-md transition-colors"
+							className="border-primary text-primary data-[state=active]:bg-primary flex-1 rounded-l-md border px-4 py-2 transition-colors data-[state=active]:text-white"
 						>
 							Login
 						</TabsTrigger>
 						<TabsTrigger
 							value="register"
-							className="flex-1 px-4 py-2 border border-primary text-primary 
-                         data-[state=active]:bg-primary data-[state=active]:text-white 
-                         rounded-r-md transition-colors"
+							className="border-primary text-primary data-[state=active]:bg-primary flex-1 rounded-r-md border px-4 py-2 transition-colors data-[state=active]:text-white"
 						>
 							Register
 						</TabsTrigger>
@@ -30,56 +41,49 @@ export default function Page() {
 							<input
 								type="email"
 								placeholder="Email"
-								className="w-full px-3 py-2 border border-secondary rounded 
-                           focus:outline-none focus:border-tertiary"
+								className="border-secondary focus:border-tertiary w-full rounded border px-3 py-2 focus:outline-none"
 							/>
 							<input
 								type="password"
 								placeholder="Password"
-								className="w-full px-3 py-2 border border-secondary rounded 
-                           focus:outline-none focus:border-tertiary"
+								className="border-secondary focus:border-tertiary w-full rounded border px-3 py-2 focus:outline-none"
 							/>
-							<div className="flex justify-center">
-								<Link
-									href="/auth/github"
-									className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-secondary 
-                             text-white rounded transition-colors"
-								>
-									<GithubIcon /> Sign in with GitHub
-								</Link>
-							</div>
 						</form>
+						<div className="flex justify-center">
+							<Button
+								onClick={onClick}
+								className="hover:bg-secondary flex w-full items-center gap-2 rounded bg-red-500 px-4 py-2 text-white transition-colors"
+							>
+								Sign in with Google
+							</Button>
+						</div>
 					</TabsContent>
 					<TabsContent value="register" className="space-y-4">
 						<form className="flex flex-col gap-4">
 							<input
 								type="email"
 								placeholder="Email"
-								className="w-full px-3 py-2 border border-secondary rounded 
-                           focus:outline-none focus:border-tertiary"
+								className="border-secondary focus:border-tertiary w-full rounded border px-3 py-2 focus:outline-none"
 							/>
 							<input
 								type="password"
 								placeholder="Password"
-								className="w-full px-3 py-2 border border-secondary rounded 
-                           focus:outline-none focus:border-tertiary"
+								className="border-secondary focus:border-tertiary w-full rounded border px-3 py-2 focus:outline-none"
 							/>
 							<input
 								type="password"
 								placeholder="Confirm Password"
-								className="w-full px-3 py-2 border border-secondary rounded 
-                           focus:outline-none focus:border-tertiary"
+								className="border-secondary focus:border-tertiary w-full rounded border px-3 py-2 focus:outline-none"
 							/>
-							<div className="flex justify-center">
-								<Link
-									href="/auth/github"
-									className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-secondary 
-                             text-white rounded transition-colors"
-								>
-									<GithubIcon /> Sign in with GitHub
-								</Link>
-							</div>
 						</form>
+						<div className="flex justify-center">
+							<Button
+								onClick={onClick}
+								className="hover:bg-secondary flex w-full items-center gap-2 rounded bg-red-500 px-4 py-2 text-white transition-colors"
+							>
+								Sign in with Google
+							</Button>
+						</div>
 					</TabsContent>
 				</Tabs>
 			</div>

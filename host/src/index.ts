@@ -11,7 +11,7 @@ import si, { networkInterfaces, osInfo } from "systeminformation";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { connectToSocket } from "./server/config/socket";
-import { startScrapers } from "../scraper";
+import { startScrapers } from "@/scraper/scraper";
 
 export let globalConfig: Config = {
 	initialized: true,
@@ -31,9 +31,8 @@ export let globalConfig: Config = {
 
 const execAsync = promisify(exec);
 
-const configFilePath = `${
-	process.env.HOME || process.env.USERPROFILE
-}/.config/cliapp/settings.json`;
+const configFilePath = `${process.env.HOME || process.env.USERPROFILE
+	}/.config/cliapp/settings.json`;
 
 async function ensureConfigDir() {
 	const configDir = dirname(configFilePath);

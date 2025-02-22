@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "bun server.ts --watch",
+		"dev": "next dev --turbopack",
 		"build": "next build",
 		"start": "NODE_ENV=production bun server.ts",
 		"lint": "next lint"
@@ -26,6 +26,7 @@
 		"@types/socket.io": "^3.0.2",
 		"@types/socket.io-client": "^3.0.0",
 		"arctic": "^3.3.0",
+		"axios": "^1.7.9",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cmdk": "1.0.0",
