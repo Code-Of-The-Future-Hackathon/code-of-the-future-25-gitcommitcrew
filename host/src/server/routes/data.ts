@@ -1,10 +1,10 @@
 import { Router } from "express";
 
-import { getStaticData } from "@/server/controllers/data";
+import { getGlobalConfig } from "@/server/controllers/data";
 import { isAuth } from "@/server/middlewares/auth";
 
 const router = Router();
 
-router.get("/", isAuth, getStaticData);
+router.get("/", isAuth, getGlobalConfig);
 
 export default router;
