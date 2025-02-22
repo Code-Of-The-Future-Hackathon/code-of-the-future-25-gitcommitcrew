@@ -1,5 +1,8 @@
 FROM oven/bun:latest
 
+# Install OpenSSH
+RUN apt-get update && apt-get install -y openssh-client openssh-server && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY host/package.json .
@@ -9,4 +12,8 @@ COPY host/src/ ./src/
 
 RUN bun install
 
-CMD ["bun", "run", "src/index.ts", "--", "setup"]
+# Copy and make the entrypoint script executable
+COPY host/scripts/docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

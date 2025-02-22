@@ -35,6 +35,23 @@ export const hostTable = pgTable("host", {
 	hostname: text("hostname").notNull(),
 	port: integer("port").notNull(),
 	org: text("org").notNull(),
+	tunnelPort: integer("tunnel_port"),
+	tunnelActive: boolean("tunnel_active").default(false),
+	tunnelSecret: text("tunnel_secret"),
+});
+
+export const sshSessionTable = pgTable("ssh_session", {
+	id: text("id").primaryKey().$defaultFn(randomUUID),
+	hostId: text("host_id")
+		.notNull()
+		.references(() => hostTable.id),
+	userId: text("user_id")
+		.notNull()
+		.references(() => userTable.id),
+	tunnelPort: integer("tunnel_port").notNull(),
+	startedAt: timestamp("started_at").notNull(),
+	endedAt: timestamp("ended_at"),
+	status: text("status").notNull(), // 'active', 'terminated', 'failed'
 });
 
 export const permissionTable = pgTable("permission", {

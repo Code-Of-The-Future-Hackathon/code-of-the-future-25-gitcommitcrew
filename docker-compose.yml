@@ -1,30 +1,26 @@
-# docker-compose.yml
 version: "3.8"
 
 services:
-  host1:
+  host:
     build:
       context: .
       dockerfile: host/Dockerfile
     ports:
-      - "3001:3000"
+      - "3001:3000" # Host API
+      - "2222:2222" # SSH Jump Server
+      - "2223:2223" # WebSocket
     environment:
       - HOST_ID=1
+      - SERVER_URL=http://frontend:3000
+      - SSH_HOST_KEY_DIR=/app/.ssh
+    volumes:
+      - ssh_keys:/app/.ssh
+    networks:
+      - app_network
 
-  host2:
-    build:
-      context: .
-      dockerfile: host/Dockerfile
-    ports:
-      - "3002:3000"
-    environment:
-      - HOST_ID=2
+volumes:
+  ssh_keys:
 
-  host3:
-    build:
-      context: .
-      dockerfile: host/Dockerfile
-    ports:
-      - "3003:3000"
-    environment:
-      - HOST_ID=3
+networks:
+  app_network:
+    driver: bridge

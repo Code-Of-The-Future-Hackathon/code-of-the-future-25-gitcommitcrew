@@ -6,13 +6,15 @@ import { Terminal, AlertCircle, Clock, ArrowUpRight } from "lucide-react";
 import { SystemInfo, SystemMetrics } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { SSHConnect } from "./ssh-connect";
 
 interface OverviewProps {
 	systemInfo: SystemInfo;
 	metrics: SystemMetrics;
+	deviceId: string;
 }
 
-export function Overview({ systemInfo, metrics }: OverviewProps) {
+export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
 	// Get the latest values from metrics
 	const latestCpuUsage = metrics.cpu.usage[metrics.cpu.usage.length - 1].value;
 	const latestMemoryUsage =
@@ -46,10 +48,7 @@ export function Overview({ systemInfo, metrics }: OverviewProps) {
 						Last updated: {new Date().toLocaleTimeString()}
 					</p>
 				</div>
-				<Button onClick={() => console.log("SSH connection")}>
-					<Terminal className="mr-2 h-4 w-4" />
-					SSH Connect
-				</Button>
+				<SSHConnect deviceId={deviceId} deviceName={systemInfo.hostname} />
 			</div>
 
 			{/* Quick Stats */}
