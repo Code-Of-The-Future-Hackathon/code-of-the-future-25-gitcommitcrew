@@ -30,7 +30,7 @@ app.use(mainRouter);
 
 const server = http.createServer(app);
 
-const startServer = async (port: number, serverUrl: string) => {
+const startServer = async (port: number) => {
 	server.listen(port);
 };
 

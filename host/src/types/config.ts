@@ -3,5 +3,9 @@ export type Config = {
 	lastRun: string;
 	lastUpdate: string;
 	updateCount: number;
-	password: string | null;
+	hostname: string;
+	org: string;
+	password: string;
+	port: number;
+	serverUrl: string;
 };
