@@ -18,12 +18,10 @@ app.prepare().then(() => {
 	const io = new Server(httpServer);
 
 	io.on("connection", (socket: Socket) => {
-		// ...
 		console.log("Socket connected ", socket.id);
 
-		socket.on("chat message", (msg) => {
+		socket.on("host:connection", (msg) => {
 			console.log("Message received:", msg);
-			io.emit("chat message", msg); // Broadcast the message to all connected clients
 		});
 
 		socket.on("disconnect", () => {

@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 import { startServer } from "./server/app";
 import type { Config } from "./types/config";
 import axios from "axios";
-import si, { networkInterfaces } from "systeminformation";
+import si, { networkInterfaces, osInfo } from "systeminformation";
+import { connectToSocket } from "./server/config/socket";
 
 export let globalConfig: Config = {
 	initialized: true,
@@ -17,8 +18,12 @@ export let globalConfig: Config = {
 	hostname: "",
 	org: "",
 	password: "",
+	passwordHash: "",
 	port: 3000,
 	serverUrl: "",
+	ip: "",
+	localIp: "",
+	mac: "",
 };
 
 const configFilePath = `${
@@ -39,11 +44,6 @@ async function runSetup() {
 		globalConfig = existingConfig;
 		return existingConfig;
 	}
-
-	let hostname: string | null = null;
-	do {
-		hostname = prompt("Enter a hostname for the host: ");
-	} while (!hostname);
 
 	let org: string | null = null;
 	do {
@@ -67,11 +67,23 @@ async function runSetup() {
 		);
 	} while (!serverUrl || isNaN(port));
 
-	globalConfig.hostname = hostname;
+	const networkInterface = (await networkInterfaces(
+		"default",
+	)) as si.Systeminformation.NetworkInterfacesData;
+
+	const { ip } = await axios
+		.get<{ ip: string }>("https://api.ipify.org?format=json")
+		.then((res) => res.data);
+
+	globalConfig.hostname = (await osInfo()).hostname;
 	globalConfig.org = org;
 	globalConfig.password = password;
+	globalConfig.passwordHash = await Bun.password.hash(password);
 	globalConfig.serverUrl = serverUrl;
 	globalConfig.port = port;
+	globalConfig.localIp = networkInterface.ip4;
+	globalConfig.ip = ip;
+	globalConfig.mac = networkInterface.mac;
 
 	await Bun.write(configFilePath, JSON.stringify(globalConfig));
 	console.log("Created new configuration file");
@@ -89,22 +101,26 @@ async function runMonitoringService() {
 
 		await startServer(globalConfig.port);
 
-		const networkInterface = (await networkInterfaces(
-			"default",
-		)) as si.Systeminformation.NetworkInterfacesData;
-
 		await axios
-			.post(`${globalConfig.serverUrl}/api/hosts`, {
-				hostname: globalConfig.hostname,
-				org: globalConfig.org,
-				password: await Bun.password.hash(globalConfig.password),
-				port: globalConfig.port,
-				ip: networkInterface.ip4,
-				mac: networkInterface.mac,
-			}, {headers: {
-				"Content-Type": 'multipart/form-data'
-			}})
+			.post(
+				`${globalConfig.serverUrl}/api/hosts`,
+				{
+					hostname: globalConfig.hostname,
+					org: globalConfig.org,
+					password: await Bun.password.hash(globalConfig.password),
+					port: globalConfig.port,
+					ip: globalConfig.ip,
+					mac: globalConfig.mac,
+				},
+				{
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				},
+			)
 			.catch((err) => {});
+
+		connectToSocket();
 	} else {
 		globalConfig = await runSetup();
 	}

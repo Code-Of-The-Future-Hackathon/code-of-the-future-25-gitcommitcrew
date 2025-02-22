@@ -9,7 +9,6 @@ import {
 import type { InferSelectModel } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-
 export const userTable = pgTable("user", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	githubId: integer("githubId"),
@@ -19,19 +18,23 @@ export const userTable = pgTable("user", {
 
 export const hostToUser = pgTable("userToHost", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
-	userId: text('userId').notNull().references(() => userTable.id),
-	hostId: text('hostId').notNull().references(() => hostTable.id)
-})
+	userId: text("userId")
+		.notNull()
+		.references(() => userTable.id),
+	hostId: text("hostId")
+		.notNull()
+		.references(() => hostTable.id),
+});
 
 export const hostTable = pgTable("host", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	ip: text("ip").notNull(),
 	claimed: boolean("claimed").default(false),
 	password: text("password").notNull(),
-	mac: text("mac").notNull(),
+	mac: text("mac").notNull().unique(),
 	hostname: text("hostname").notNull(),
-	port: integer('port').notNull(),
-	org: text('org').notNull()
+	port: integer("port").notNull(),
+	org: text("org").notNull(),
 });
 
 export const permissionTable = pgTable("permission", {

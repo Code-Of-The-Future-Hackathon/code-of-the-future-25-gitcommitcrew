@@ -33,8 +33,21 @@ export async function POST(req: NextRequest) {
 		return new NextResponse(null, { status: 500 });
 	}
 
-	const newHost = (await db.insert(hostTable).values(data).returning())[0];
-	console.log("[LOG] created host with id ", newHost.id);
+	try {
+		const newHost = (await db.insert(hostTable).values(data).returning())[0];
+		console.log("[LOG] created host with id ", newHost.id);
 
-	return NextResponse.json({ success: true, data: newHost });
+		return NextResponse.json({ success: true, data: newHost });
+	} catch (e) {
+		console.log("[ERROR] failed to create host", e);
+		return NextResponse.json(
+			{
+				success: false,
+				error: {
+					message_error: "Failed to create host",
+				},
+			},
+			{ status: 500 },
+		);
+	}
 }

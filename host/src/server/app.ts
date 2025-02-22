@@ -6,7 +6,6 @@ import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 
 import mainRouter from "@/server/routes/index";
-import { setupWS } from "@/server/config/socket";
 
 const app = express();
 
@@ -33,8 +32,6 @@ const server = http.createServer(app);
 
 const startServer = async (port: number) => {
 	server.listen(port);
-
-	setupWS(server, app);
 };
 
 export { startServer };
