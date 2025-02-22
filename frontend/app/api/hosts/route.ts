@@ -10,10 +10,11 @@ const hostSchema = z.object({
 	mac: z.string(),
 	hostname: z.string().min(1),
 	org: z.string().min(1),
-	port: z.number()
+	port: z.number(),
 });
 
 export async function POST(req: NextRequest) {
+	console.log("[LOG] getting request", req);
 	const body = await req.formData();
 
 	const inputData = {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 		ip: body.get("ip") as string,
 		hostname: body.get("hostname") as string,
 		org: body.get("org") as string,
-		port: parseInt(body.get("port") as string)
+		port: parseInt(body.get("port") as string),
 	};
 
 	const { success, data } = hostSchema.safeParse(inputData);
@@ -32,8 +33,21 @@ export async function POST(req: NextRequest) {
 		return new NextResponse(null, { status: 500 });
 	}
 
-	const newHost = (await db.insert(hostTable).values(data).returning())[0];
-	console.log("[LOG] created host with id ", newHost.id);
+	try {
+		const newHost = (await db.insert(hostTable).values(data).returning())[0];
+		console.log("[LOG] created host with id ", newHost.id);
 
-	return NextResponse.json({ success: true, data: newHost });
+		return NextResponse.json({ success: true, data: newHost });
+	} catch (e) {
+		console.log("[ERROR] failed to create host", e);
+		return NextResponse.json(
+			{
+				success: false,
+				error: {
+					message_error: "Failed to create host",
+				},
+			},
+			{ status: 500 },
+		);
+	}
 }

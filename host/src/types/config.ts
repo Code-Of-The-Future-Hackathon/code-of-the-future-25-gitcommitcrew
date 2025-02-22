@@ -6,6 +6,10 @@ export type Config = {
 	hostname: string;
 	org: string;
 	password: string;
+	passwordHash: string;
 	port: number;
 	serverUrl: string;
+	ip: string;
+	localIp: string;
+	mac: string;
 };

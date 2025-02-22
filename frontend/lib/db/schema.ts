@@ -31,7 +31,7 @@ export const hostTable = pgTable("host", {
 	ip: text("ip").notNull(),
 	claimed: boolean("claimed").default(false),
 	password: text("password").notNull(),
-	mac: text("mac").notNull(),
+	mac: text("mac").notNull().unique(),
 	hostname: text("hostname").notNull(),
 	port: integer("port").notNull(),
 	org: text("org").notNull(),
