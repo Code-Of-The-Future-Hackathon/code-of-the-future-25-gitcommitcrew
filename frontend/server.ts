@@ -4,6 +4,7 @@ import { getCurrentSession } from "./lib/auth";
 import { db } from "./lib/db";
 import { hostTable, systemDataTable } from "./lib/db/schema";
 import { eq } from "drizzle-orm";
+import { nextEvents } from "./nextEvents";
 
 const { createServer } = require("http");
 
@@ -48,6 +49,19 @@ app.prepare().then(async () => {
 				console.log(host.password, data.passwordHash);
 				console.log("[LOG] incorrect password for host.");
 			}
+		});
+
+		socket.on(nextEvents.HOST_OPEN, async ({ hostId }: { hostId: string }) => {
+			const data = await db
+				.select({ data: systemDataTable.data })
+				.from(systemDataTable)
+				.where(eq(systemDataTable.hostId, hostId));
+
+			console.log("[LOG] Client opened host", hostId, data.length);
+			socket.emit(
+				nextEvents.DATA_SEND,
+				data.map((d) => d.data),
+			);
 		});
 
 		socket.on("disconnect", () => {
