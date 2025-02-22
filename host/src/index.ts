@@ -142,7 +142,7 @@ async function runMonitoringService() {
 				{
 					hostname: globalConfig.hostname,
 					org: globalConfig.org,
-					password: await Bun.password.hash(globalConfig.password),
+					password: globalConfig.passwordHash,
 					port: globalConfig.port,
 					ip: globalConfig.ip,
 					mac: globalConfig.mac,

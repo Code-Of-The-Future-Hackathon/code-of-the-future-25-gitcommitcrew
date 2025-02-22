@@ -5,15 +5,39 @@ import {
 	timestamp,
 	boolean,
 	primaryKey,
+	pgEnum,
+	jsonb,
 } from "drizzle-orm/pg-core";
 import type { InferSelectModel } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { EventData } from "../../../events";
 
 export const userTable = pgTable("user", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	githubId: integer("githubId"),
 	username: text("username"),
 	email: text("email"),
+});
+
+export const dataEnum = pgEnum("dataEnum", [
+	"cpu",
+	"memory",
+	"system",
+	"battery",
+	"network",
+	"disk",
+	"process",
+]);
+
+export const systemDataTable = pgTable("systemData", {
+	id: text("id").primaryKey().$defaultFn(randomUUID),
+	type: dataEnum("type").notNull(),
+	data: jsonb("data").$type<EventData>().notNull(),
+	hostId: text("hostId")
+		.notNull()
+		.references(() => hostTable.id),
+
+	createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const hostToUser = pgTable("userToHost", {

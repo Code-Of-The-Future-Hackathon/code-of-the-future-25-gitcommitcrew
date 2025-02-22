@@ -19,6 +19,7 @@ class Scraper {
 			type: this.type,
 			data,
 			passwordHash: globalConfig.passwordHash,
+			mac: globalConfig.mac
 		});
 	}
 

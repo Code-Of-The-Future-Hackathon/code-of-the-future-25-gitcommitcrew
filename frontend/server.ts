@@ -1,5 +1,9 @@
 import { Socket } from "socket.io-client";
-import { events } from "../events";
+import { events, EventData } from "../events";
+import { getCurrentSession } from "./lib/auth";
+import { db } from "./lib/db";
+import { hostTable, systemDataTable } from "./lib/db/schema";
+import { eq } from "drizzle-orm";
 
 const { createServer } = require("http");
 
@@ -13,7 +17,7 @@ const port = 3000;
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
 	const httpServer = createServer(handler);
 
 	const io = new Server(httpServer);
@@ -25,7 +29,26 @@ app.prepare().then(() => {
 			console.log("Message received:", msg);
 		});
 
-		socket.on(events.HOST_NEW_DATA, (data) => console.log(data));
+		socket.on(events.HOST_NEW_DATA, async (data: EventData) => {
+			const host = (
+				await db.select().from(hostTable).where(eq(hostTable.mac, data.mac))
+			)[0];
+
+			if (host.password === data.passwordHash) {
+				console.log("[LOG] password for host is correct. Processing data.");
+				const info = (
+					await db
+						.insert(systemDataTable)
+						.values({ data, type: data.type, hostId: host.id })
+						.returning()
+				)[0];
+
+				console.log("[LOG] created system info ", info.id);
+			} else {
+				console.log(host.password, data.passwordHash);
+				console.log("[LOG] incorrect password for host.");
+			}
+		});
 
 		socket.on("disconnect", () => {
 			console.log("A client disconnected");
