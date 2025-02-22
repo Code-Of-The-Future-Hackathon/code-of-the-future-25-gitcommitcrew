@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TimeInterval } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CustomChart } from "./custom-chart";
 
 export function NetworkMetrics({ metrics }: { metrics: any }) {
 	const [interval, setInterval] = useState<TimeInterval>("5m");
@@ -12,22 +13,22 @@ export function NetworkMetrics({ metrics }: { metrics: any }) {
 	return (
 		<section id="network" className="space-y-6">
 			<h2 className="text-2xl font-bold">Network Activity</h2>
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-				<MetricCard
+			<div className="grid grid-cols-1 gap-6">
+				<CustomChart
 					title="Network In"
 					data={metrics.rx_bytes}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => `${formatBytes(v)}/s`}
 				/>
-				<MetricCard
+				<CustomChart
 					title="Network Out"
 					data={metrics.tx_bytes}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => `${formatBytes(v)}/s`}
 				/>
-				<MetricCard
+				<CustomChart
 					title="Active Connections"
 					data={metrics.connections}
 					interval={interval}

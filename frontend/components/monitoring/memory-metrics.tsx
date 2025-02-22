@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TimeInterval } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CustomChart } from "./custom-chart";
 
 export function MemoryMetrics({ metrics }: { metrics: any }) {
 	const [interval, setInterval] = useState<TimeInterval>("5m");
@@ -12,22 +13,23 @@ export function MemoryMetrics({ metrics }: { metrics: any }) {
 	return (
 		<section id="memory" className="space-y-6">
 			<h2 className="text-2xl font-bold">Memory Usage</h2>
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-				<MetricCard
+			<div className="grid grid-cols-1 gap-6">
+				<CustomChart
 					title="Memory Used"
 					data={metrics.used}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => formatBytes(v)}
 				/>
-				<MetricCard
+				<CustomChart
 					title="Swap Usage"
 					data={metrics.swap}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => formatBytes(v)}
+					domain={[0, 100000]}
 				/>
-				<div className="md:col-span-2">
+				<div>
 					<Card>
 						<CardHeader>
 							<CardTitle>Memory Distribution</CardTitle>
