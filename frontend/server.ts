@@ -19,7 +19,7 @@ app.prepare().then(() => {
 
 	io.on("connection", (socket: Socket) => {
 		// ...
-		console.log("Socket connected");
+		console.log("Socket connected ", socket.id);
 
 		socket.on("chat message", (msg) => {
 			console.log("Message received:", msg);
