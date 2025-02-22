@@ -92,14 +92,16 @@ async function runMonitoringService() {
 			"default",
 		)) as si.Systeminformation.NetworkInterfacesData;
 
-		await axios.post(`${globalConfig.serverUrl}/hosts`, {
-			hostname: globalConfig.hostname,
-			org: globalConfig.org,
-			password: await Bun.password.hash(globalConfig.password),
-			port: globalConfig.port,
-			ip: networkInterface.ip4,
-			mac: networkInterface.mac,
-		});
+		await axios
+			.post(`${globalConfig.serverUrl}/hosts`, {
+				hostname: globalConfig.hostname,
+				org: globalConfig.org,
+				password: await Bun.password.hash(globalConfig.password),
+				port: globalConfig.port,
+				ip: networkInterface.ip4,
+				mac: networkInterface.mac,
+			})
+			.catch((err) => {});
 	} else {
 		globalConfig = await runSetup();
 	}
