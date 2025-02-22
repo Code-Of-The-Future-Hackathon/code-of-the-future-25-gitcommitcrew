@@ -45,6 +45,8 @@ app.prepare().then(async () => {
 				)[0];
 
 				console.log("[LOG] created system info ", info.id);
+
+				socket.emit(nextEvents.DATA_SEND, [data]);
 			} else {
 				console.log(host.password, data.passwordHash);
 				console.log("[LOG] incorrect password for host.");
@@ -63,6 +65,16 @@ app.prepare().then(async () => {
 				data.map((d) => d.data),
 			);
 		});
+
+		socket.on(
+			nextEvents.GET_LATEST_DATA,
+			async ({ hostId }: { hostId: string }) => {
+				const data = await db
+					.select({ data: systemDataTable.data })
+					.from(systemDataTable)
+					.where(eq(systemDataTable.hostId, hostId));
+			},
+		);
 
 		socket.on("disconnect", () => {
 			console.log("A client disconnected");

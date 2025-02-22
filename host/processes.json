@@ -1,0 +1,55 @@
+{
+  "diskLayout": [
+    {
+      "device": "/dev/nvme0n1",
+      "type": "NVMe",
+      "name": "Micron_2450_MTFDKBA512TFK",
+      "vendor": "",
+      "size": 512110190592,
+      "bytesPerSector": null,
+      "totalCylinders": null,
+      "totalHeads": null,
+      "totalSectors": null,
+      "totalTracks": null,
+      "tracksPerCylinder": null,
+      "sectorsPerTrack": null,
+      "firmwareRevision": "",
+      "serialNum": "22283A0809B1",
+      "interfaceType": "PCIe",
+      "smartStatus": "unknown",
+      "temperature": null
+    }
+  ],
+  "fsSize": [
+    {
+      "fs": "/dev/nvme0n1p5",
+      "type": "ext4",
+      "size": 205286293504,
+      "used": 121777127424,
+      "available": 73006628864,
+      "use": 62.52,
+      "mount": "/",
+      "rw": true
+    },
+    {
+      "fs": "efivarfs",
+      "type": "efivarfs",
+      "size": 274432,
+      "used": 226304,
+      "available": 44032,
+      "use": 83.71,
+      "mount": "/sys/firmware/efi/efivars",
+      "rw": false
+    },
+    {
+      "fs": "/dev/nvme0n1p1",
+      "type": "vfat",
+      "size": 100663296,
+      "used": 34354176,
+      "available": 66309120,
+      "use": 34.13,
+      "mount": "/boot/efi",
+      "rw": true
+    }
+  ]
+}

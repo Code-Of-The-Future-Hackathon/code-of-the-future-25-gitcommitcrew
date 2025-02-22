@@ -5,6 +5,8 @@ import { Host } from "@/lib/db/schema";
 import { Server, HardDrive, Cpu, MemoryStick } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { useSocket } from "@/app/hooks/useSocket";
+import { useEffect } from "react";
 
 export function HostGrid({ hosts }: { hosts: Host[] }) {
 	if (hosts.length === 0) {
@@ -29,6 +31,27 @@ export function HostGrid({ hosts }: { hosts: Host[] }) {
 }
 
 function HostCard({ host }: { host: Host }) {
+	const { latestData, getLatestData } = useSocket();
+
+	useEffect(() => {
+		getLatestData(host.mac);
+	}, [host]);
+
+	const cpu = latestData.find((d) => d.type === "cpu");
+	const memory = latestData.find((d) => d.type === "memory");
+	const disk = latestData.find((d) => d.type === "disk");
+
+	if (!cpu || !memory || !disk) {
+		return null;
+	}
+
+	const totalDiskUse = disk.data.fsSize.reduce(
+		(acc, curr) => acc + curr.use,
+		0,
+	);
+
+	const totalDisk = disk.data.fsSize.reduce((acc, curr) => acc + curr.size, 0);
+
 	return (
 		<Card className="transition-shadow hover:shadow-lg">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -40,17 +63,17 @@ function HostCard({ host }: { host: Host }) {
 					<Metric
 						icon={<Cpu className="h-4 w-4" />}
 						label="CPU"
-						value={`${host.stats?.cpu || 0}%`}
+						value={`${((cpu.data.cpu.speed / cpu?.data.cpu.speedMax) * 100).toFixed(2) || 0}%`}
 					/>
 					<Metric
 						icon={<MemoryStick className="h-4 w-4" />}
 						label="Memory"
-						value={`${host.stats?.memory || 0}%`}
+						value={`${((memory.data.mem.used / memory.data.mem.total) * 100).toFixed(2) || 0}%`}
 					/>
 					<Metric
 						icon={<HardDrive className="h-4 w-4" />}
 						label="Disk"
-						value={`${host.stats?.disk || 0}%`}
+						value={`${((totalDiskUse / totalDisk) * 100).toFixed(2) || 0}%`}
 					/>
 					<Metric
 						icon={<Server className="h-4 w-4" />}

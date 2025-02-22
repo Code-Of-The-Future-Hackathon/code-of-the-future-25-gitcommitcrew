@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { nextEvents } from "../../nextEvents";
-import { EventData } from "../../../events";
+import { Data, EventData } from "../../../events";
 
 export const useSocket = () => {
 	const [socket, setSocket] = useState<Socket | null>(null);
@@ -9,6 +9,8 @@ export const useSocket = () => {
 	const [messages, setMessages] = useState<string[]>([]);
 
 	const [data, setData] = useState<EventData[]>([]);
+
+	const [latestData, setLatestData] = useState<EventData[]>([]);
 
 	useEffect(() => {
 		const socketIo = io();
@@ -30,6 +32,10 @@ export const useSocket = () => {
 			setData(data);
 		});
 
+		socketIo.on(nextEvents.GET_LATEST_DATA, (data: EventData[]) => {
+			setLatestData(data);
+		});
+
 		setSocket(socketIo);
 
 		return () => {
@@ -49,5 +55,19 @@ export const useSocket = () => {
 		}
 	};
 
-	return { isConnected, messages, sendMessage, openHost, data };
+	const getLatestData = (mac: string) => {
+		if (socket) {
+			socket.emit(nextEvents.GET_LATEST_DATA, { mac });
+		}
+	};
+
+	return {
+		isConnected,
+		messages,
+		sendMessage,
+		openHost,
+		data,
+		getLatestData,
+		latestData,
+	};
 };

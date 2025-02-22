@@ -8,7 +8,6 @@ import { startServer } from "./server/app";
 import type { Config } from "./types/config";
 import axios from "axios";
 import si, { networkInterfaces, osInfo } from "systeminformation";
-import { existsSync } from "node:fs";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { connectToSocket } from "./server/config/socket";
@@ -111,23 +110,17 @@ async function runMonitoringService() {
 		await startServer(globalConfig.port);
 
 		await axios
-			.post(
-				`${globalConfig.serverUrl}/api/hosts`,
-				{
-					hostname: globalConfig.hostname,
-					org: globalConfig.org,
-					password: globalConfig.passwordHash,
-					port: globalConfig.port,
-					ip: globalConfig.ip,
-					mac: globalConfig.mac,
-				},
-				{
-					headers: {
-						"Content-Type": "multipart/form-data",
-					},
-				},
-			)
-			.catch((err) => {});
+			.post(`${globalConfig.serverUrl}/system/host`, {
+				hostname: globalConfig.hostname,
+				org: globalConfig.org,
+				passwordHash: globalConfig.passwordHash,
+				port: globalConfig.port,
+				ip: globalConfig.ip,
+				mac: globalConfig.mac,
+			})
+			.catch((err) => {
+				console.error(err);
+			});
 
 		connectToSocket();
 		startScrapers();

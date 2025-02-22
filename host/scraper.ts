@@ -3,6 +3,7 @@ import { io } from "@/server/config/socket";
 import { events, type Data } from "../events";
 import { globalConfig } from "./src";
 
+const FAST_TIMER = 5 * 1000;
 const DEFAULT_TIMER = 60 * 1000;
 const LONG_TIMER = 5 * DEFAULT_TIMER;
 
@@ -19,7 +20,7 @@ class Scraper {
 			type: this.type,
 			data,
 			passwordHash: globalConfig.passwordHash,
-			mac: globalConfig.mac
+			mac: globalConfig.mac,
 		});
 	};
 
@@ -85,14 +86,14 @@ const scrapers: Record<Data, Scraper> = {
 			cpuTemperature: "*",
 		},
 		"cpu",
-		DEFAULT_TIMER,
+		FAST_TIMER,
 	),
 	memory: new Scraper(
 		{
 			mem: "total, free, used, active, slab, available, swaptotal, swapused, swapfree",
 		},
 		"memory",
-		DEFAULT_TIMER,
+		FAST_TIMER,
 	),
 	system: new Scraper(
 		{
@@ -127,7 +128,7 @@ const scrapers: Record<Data, Scraper> = {
 		"network",
 		DEFAULT_TIMER,
 	),
-	disk: new Scraper({ diskLayout: "*" }, "disk", LONG_TIMER),
+	disk: new Scraper({ diskLayout: "*", fsSize: "*" }, "disk", FAST_TIMER),
 };
 
 const startScrapers = () => {

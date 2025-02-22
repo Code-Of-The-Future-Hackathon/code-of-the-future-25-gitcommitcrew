@@ -29,7 +29,7 @@ import si, {
 // 	users: "*",
 // });
 
-const services = await si.services("*");
+const services = await si.get({ diskLayout: "*", fsSize: "*" });
 
 Bun.write("processes.json", JSON.stringify(services, null, 2));
 

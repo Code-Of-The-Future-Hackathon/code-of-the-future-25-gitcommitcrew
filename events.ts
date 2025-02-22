@@ -206,16 +206,26 @@ type DiskData = {
 		smartStatus: string;
 		temperature: number | null;
 	}[];
+	fsSize: {
+		fs: string;
+		type: string;
+		size: number;
+		used: number;
+		available: number;
+		use: number;
+		mount: string;
+		rw: boolean;
+	}[];
 };
 
 type EventData =
-	| { type: "cpu"; data: CpuData; passwordHash: string, mac: string }
-	| { type: "memory"; data: MemoryData; passwordHash: string , mac: string}
-	| { type: "system"; data: SystemData; passwordHash: string , mac: string}
-	| { type: "battery"; data: BatteryData; passwordHash: string, mac: string }
-	| { type: "process"; data: ProcessData; passwordHash: string, mac: string }
-	| { type: "network"; data: NetworkData; passwordHash: string , mac: string}
-	| { type: "disk"; data: DiskData; passwordHash: string , mac: string};
+	| { type: "cpu"; data: CpuData; passwordHash: string; mac: string }
+	| { type: "memory"; data: MemoryData; passwordHash: string; mac: string }
+	| { type: "system"; data: SystemData; passwordHash: string; mac: string }
+	| { type: "battery"; data: BatteryData; passwordHash: string; mac: string }
+	| { type: "process"; data: ProcessData; passwordHash: string; mac: string }
+	| { type: "network"; data: NetworkData; passwordHash: string; mac: string }
+	| { type: "disk"; data: DiskData; passwordHash: string; mac: string };
 
 export { events };
 
