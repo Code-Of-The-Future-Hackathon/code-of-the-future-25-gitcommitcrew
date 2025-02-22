@@ -9,7 +9,6 @@ import {
 import type { InferSelectModel } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-
 export const userTable = pgTable("user", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
 	githubId: integer("githubId"),
@@ -19,9 +18,13 @@ export const userTable = pgTable("user", {
 
 export const hostToUser = pgTable("userToHost", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
-	userId: text('userId').notNull().references(() => userTable.id),
-	hostId: text('hostId').notNull().references(() => hostTable.id)
-})
+	userId: text("userId")
+		.notNull()
+		.references(() => userTable.id),
+	hostId: text("hostId")
+		.notNull()
+		.references(() => hostTable.id),
+});
 
 export const hostTable = pgTable("host", {
 	id: text("id").primaryKey().$defaultFn(randomUUID),
@@ -30,8 +33,8 @@ export const hostTable = pgTable("host", {
 	password: text("password").notNull(),
 	mac: text("mac").notNull(),
 	hostname: text("hostname").notNull(),
-	port: integer('port').notNull(),
-	org: text('org').notNull()
+	port: integer("port").notNull(),
+	org: text("org").notNull(),
 });
 
 export const permissionTable = pgTable("permission", {
@@ -83,6 +86,28 @@ export const sessionTable = pgTable("session", {
 	}).notNull(),
 });
 
+export const organizationTable = pgTable("organization", {
+	id: text("id").primaryKey().$defaultFn(randomUUID),
+	name: text("name").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userToOrganization = pgTable(
+	"user_to_organization",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => userTable.id),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organizationTable.id),
+		role: text("role").notNull(), // e.g., 'admin', 'member'
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.organizationId] })],
+);
+
 export type User = InferSelectModel<typeof userTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
 export type Host = InferSelectModel<typeof hostTable>;
+export type Organization = InferSelectModel<typeof organizationTable>;
+export type UserToOrganization = InferSelectModel<typeof userToOrganization>;
