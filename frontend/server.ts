@@ -1,4 +1,5 @@
 import { Socket } from "socket.io-client";
+import { events } from "../events";
 
 const { createServer } = require("http");
 
@@ -23,6 +24,8 @@ app.prepare().then(() => {
 		socket.on("host:connection", (msg) => {
 			console.log("Message received:", msg);
 		});
+
+		socket.on(events.HOST_NEW_DATA, (data) => console.log(data));
 
 		socket.on("disconnect", () => {
 			console.log("A client disconnected");
