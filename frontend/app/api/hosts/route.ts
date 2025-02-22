@@ -10,10 +10,11 @@ const hostSchema = z.object({
 	mac: z.string(),
 	hostname: z.string().min(1),
 	org: z.string().min(1),
-	port: z.number()
+	port: z.number(),
 });
 
 export async function POST(req: NextRequest) {
+	console.log("[LOG] getting request", req);
 	const body = await req.formData();
 
 	const inputData = {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 		ip: body.get("ip") as string,
 		hostname: body.get("hostname") as string,
 		org: body.get("org") as string,
-		port: parseInt(body.get("port") as string)
+		port: parseInt(body.get("port") as string),
 	};
 
 	const { success, data } = hostSchema.safeParse(inputData);
