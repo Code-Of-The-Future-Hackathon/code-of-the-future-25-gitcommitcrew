@@ -21,7 +21,7 @@ class Scraper {
 			passwordHash: globalConfig.passwordHash,
 			mac: globalConfig.mac
 		});
-	}
+	};
 
 	constructor(query: object, type: Data, timer: number) {
 		this.query = query;
@@ -41,7 +41,7 @@ class Scraper {
 
 	start() {
 		if (this.timer) {
-			this.emit()
+			this.emit();
 			this.interval = setInterval(() => this.emit(), this.timer);
 			this.running = true;
 		}

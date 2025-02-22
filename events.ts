@@ -1,6 +1,7 @@
 const enum events {
 	HOST_CONNECTION = "host:connection",
 	HOST_NEW_DATA = "host:new:data",
+	HOST_UPDATE_INTERVAL = "host:update:interval",
 }
 
 type Data =

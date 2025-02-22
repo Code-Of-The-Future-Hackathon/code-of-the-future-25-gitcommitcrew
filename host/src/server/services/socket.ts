@@ -1,16 +1,19 @@
+import { globalConfig } from "@/index";
 import type { Data } from "../../../../events";
+import { scrapers } from "../../../scraper";
 
-const customData: Record<Data, number> = {
-	cpu: 5 * 1000,
-	disk: 5 * 1000,
-	memory: 5 * 1000,
-	network: 5 * 1000,
-	process: 5 * 1000,
-	system: 5 * 1000,
-};
+const changeIntervalSpeed = async (
+	passwordHash: string,
+	data: Data,
+	interval: number,
+) => {
+	if (!(await Bun.password.verify(globalConfig.password, passwordHash))) return;
 
-const changeIntervalSpeed = (data: Data, interval: number) => {
-	customData[data] = interval;
+	const scraper = scrapers[data];
+
+	if (!scraper) return;
+
+	scraper.update(undefined, interval);
 };
 
 export { changeIntervalSpeed };
