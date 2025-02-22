@@ -40,6 +40,29 @@ export interface MetricData {
 	value: number;
 }
 
+export interface NetworkInterface {
+	name: string;
+	status: string;
+	mac: string;
+	ipv4: string;
+	ipv6: string;
+}
+
+export interface StorageDevice {
+	mount: string;
+	size: number;
+	used: number;
+	device: string;
+}
+
+export interface Process {
+	pid: number;
+	name: string;
+	cpu: number;
+	memory: number;
+	state: string;
+}
+
 export interface SystemMetrics {
 	cpu: {
 		usage: MetricData[];
@@ -51,6 +74,7 @@ export interface SystemMetrics {
 		}[];
 	};
 	memory: {
+		total: number;
 		used: MetricData[];
 		swap: MetricData[];
 	};
@@ -58,16 +82,19 @@ export interface SystemMetrics {
 		rx_bytes: MetricData[];
 		tx_bytes: MetricData[];
 		connections: MetricData[];
+		interfaces: NetworkInterface[];
 	};
 	storage: {
 		read_bytes: MetricData[];
 		write_bytes: MetricData[];
 		iops: MetricData[];
+		devices: StorageDevice[];
 	};
 	processes: {
 		total: MetricData[];
 		running: MetricData[];
 		blocked: MetricData[];
+		topProcesses: Process[];
 	};
 }
 
