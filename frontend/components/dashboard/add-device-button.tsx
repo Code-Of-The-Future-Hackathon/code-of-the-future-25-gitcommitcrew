@@ -11,37 +11,30 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { User } from "@/lib/db/schema";
 import { Plus, Server } from "lucide-react";
 import { useState } from "react";
-
-export interface UnclaimedHost {
-	id: string;
-	hostname: string;
-	mac: string;
-	ip: string;
-	org: string;
-	claimed: boolean;
-}
+import { THost } from "../../../backend/src/services/system/models/hosts";
 
 export function AddDeviceButton({
-	user,
 	unclaimedHosts,
 }: {
-	user: User;
-	unclaimedHosts: UnclaimedHost[];
+	unclaimedHosts: THost[];
 }) {
 	const [open, setOpen] = useState(false);
-	const [selectedHost, setSelectedHost] = useState<UnclaimedHost | null>(null);
+	const [selectedHost, setSelectedHost] = useState<THost | null>(null);
 	const [password, setPassword] = useState("");
 
 	const handleClaim = async () => {
 		if (!selectedHost) return;
 
-		const { data, status } = await api.post("/hosts", {
-			password,
-			hostId: selectedHost.id,
-		});
+		const { data, status } = await api.post(
+			"/system/host/claim",
+			{
+				password,
+				hostId: selectedHost.id,
+			},
+			{ headers: { "Content-Type": "application/json" } },
+		);
 
 		if (status != 200) {
 			console.error("Bad");

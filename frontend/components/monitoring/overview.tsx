@@ -1,21 +1,19 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Terminal, AlertCircle, Clock, ArrowUpRight } from "lucide-react";
+import { AlertCircle, Clock, ArrowUpRight } from "lucide-react";
 import { SystemInfo, SystemMetrics } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
-import { User } from "@/lib/db/schema";
+import { useUser } from "@/context/user";
 
 interface OverviewProps {
 	systemInfo: SystemInfo;
 	metrics: SystemMetrics;
 	deviceId: string;
-	user: User;
 }
 
-export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
+export function Overview({ systemInfo, metrics }: OverviewProps) {
 	// Get the latest values from metrics
 	const latestCpuUsage = metrics.cpu.usage[metrics.cpu.usage.length - 1].value;
 	const latestMemoryUsage =
@@ -39,6 +37,8 @@ export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
 			time: "1h ago",
 		},
 	];
+
+	const { user } = useUser();
 
 	return (
 		<section id="overview" className="space-y-6">

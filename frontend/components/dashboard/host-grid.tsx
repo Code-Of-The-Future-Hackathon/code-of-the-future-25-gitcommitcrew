@@ -1,14 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Host } from "@/lib/db/schema";
 import { Server, HardDrive, Cpu, MemoryStick } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { useSocket } from "@/app/hooks/useSocket";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { THost } from "../../../backend/src/services/system/models/hosts";
+import { TSystemData } from "../../../backend/src/services/system/models/systemData";
+import { api } from "@/lib/api";
+import { EventData } from "../../../events";
 
-export function HostGrid({ hosts }: { hosts: Host[] }) {
+export function HostGrid({ hosts }: { hosts: THost[] }) {
 	if (hosts.length === 0) {
 		return (
 			<div className="py-12 text-center">
@@ -30,27 +32,50 @@ export function HostGrid({ hosts }: { hosts: Host[] }) {
 	);
 }
 
-function HostCard({ host }: { host: Host }) {
-	const { latestData, getLatestData } = useSocket();
+function HostCard({ host }: { host: THost }) {
+	const [latestData, setLatestData] = useState<TSystemData[] | null>(null);
 
 	useEffect(() => {
-		getLatestData(host.mac);
-	}, [host]);
+		api
+			.post("/system/host/latest", {
+				hostId: host.id,
+				types: ["memory", "disk", "process"],
+			})
+			.then(({ data }) => {
+				if (data.success) {
+					setLatestData(data.data);
+					console.log(data.data);
+				}
+			});
+	}, []);
 
-	const cpu = latestData.find((d) => d.type === "cpu");
+	useEffect(() => {
+		console.log(latestData);
+	}, [latestData]);
+
+	if (!latestData) return null;
+
 	const memory = latestData.find((d) => d.type === "memory");
 	const disk = latestData.find((d) => d.type === "disk");
+	const process = latestData.find((d) => d.type === "process");
 
-	if (!cpu || !memory || !disk) {
+	if (!memory || !disk || !process) {
 		return null;
 	}
 
-	const totalDiskUse = disk.data.fsSize.reduce(
-		(acc, curr) => acc + curr.use,
+	const memoryData = memory.data as Extract<EventData, { type: "memory" }>;
+	const diskData = disk.data as Extract<EventData, { type: "disk" }>;
+	const processData = process.data as Extract<EventData, { type: "process" }>;
+
+	const totalDiskUse = diskData.data.fsSize.reduce(
+		(acc, curr) => (acc += curr.used),
 		0,
 	);
 
-	const totalDisk = disk.data.fsSize.reduce((acc, curr) => acc + curr.size, 0);
+	const totalDisk = diskData.data.fsSize.reduce(
+		(acc, curr) => (acc += curr.size),
+		0,
+	);
 
 	return (
 		<Card className="transition-shadow hover:shadow-lg">
@@ -63,12 +88,12 @@ function HostCard({ host }: { host: Host }) {
 					<Metric
 						icon={<Cpu className="h-4 w-4" />}
 						label="CPU"
-						value={`${((cpu.data.cpu.speed / cpu?.data.cpu.speedMax) * 100).toFixed(2) || 0}%`}
+						value={`${processData.data.currentLoad.currentLoad.toFixed(2) || 0}%`}
 					/>
 					<Metric
 						icon={<MemoryStick className="h-4 w-4" />}
 						label="Memory"
-						value={`${((memory.data.mem.used / memory.data.mem.total) * 100).toFixed(2) || 0}%`}
+						value={`${((1 - memoryData.data.mem.available / memoryData.data.mem.total) * 100).toFixed(2) || 0}%`}
 					/>
 					<Metric
 						icon={<HardDrive className="h-4 w-4" />}

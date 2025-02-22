@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import { nextEvents } from "../../nextEvents";
-import { Data, EventData } from "../../../events";
+import { EventData } from "../../../events";
 
 export const useSocket = () => {
 	const [socket, setSocket] = useState<Socket | null>(null);

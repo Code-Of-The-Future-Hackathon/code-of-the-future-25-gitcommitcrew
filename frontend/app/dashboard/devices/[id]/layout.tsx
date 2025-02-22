@@ -1,22 +1,16 @@
 import { Sidebar } from "@/components/monitoring/sidebar";
-import { getCurrentSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { generateMockData } from "@/lib/mock-data";
+import { useSearchParams } from "next/navigation";
 
-// In reality, this would be fetched based on the device ID
 const mockData = generateMockData();
 
-export default async function DeviceLayout({
+export default function DeviceLayout({
 	children,
-	params,
 }: {
 	children: React.ReactNode;
-	params: Promise<{ id: string }>;
 }) {
-	const { user } = await getCurrentSession();
-	if (!user) redirect("/auth");
-
-	const { id } = await params;
+	const id = useSearchParams().get("id");
+	if (!id) return null;
 
 	return (
 		<div className="bg-background flex h-screen">
