@@ -4,7 +4,13 @@ import { AddDeviceButton } from "@/components/dashboard/add-device-button";
 import { HostGrid } from "@/components/dashboard/host-grid";
 import { Clock } from "lucide-react";
 import { db } from "@/lib/db";
-import { hostTable, userHostTable, userTable } from "@/lib/db/schema";
+import {
+	hostTable,
+	organizationTable,
+	userHostTable,
+	userTable,
+	userToOrganization,
+} from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 // Mock data for unclaimed hosts
@@ -53,13 +59,26 @@ export default async function DashboardPage({
 	const { user } = await getCurrentSession();
 	if (!user) redirect("/auth");
 
-	// In reality, you would fetch hosts based on the org ID
-	const { org } = await searchParams;
+	const org = await db
+		.select()
+		.from(organizationTable)
+		.innerJoin(
+			userToOrganization,
+			eq(userToOrganization.organizationId, organizationTable.id),
+		)
+		.innerJoin(userTable, eq(userToOrganization.userId, userTable.id))
+		.where(eq(userTable.id, user.id))
+		.then((data) => data[0]);
 
 	const unclaimedHosts = await db
 		.select()
 		.from(hostTable)
-		.where(and(eq(hostTable.org, "Test Org"), eq(hostTable.claimed, false)));
+		.where(
+			and(
+				eq(hostTable.org, org.organization.name),
+				eq(hostTable.claimed, false),
+			),
+		);
 
 	const ownedHosts = await db
 		.select({ hostTable })
