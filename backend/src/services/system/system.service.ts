@@ -232,19 +232,46 @@ const getSystemData = async (userId: string, hostId: string) => {
 		throw new AppError(SystemErrors.NOT_FOUND);
 	}
 
-	const systemData = (
+	const system = (
 		await db
 			.select()
 			.from(SystemData)
 			.where(and(eq(SystemData.hostId, hostId), eq(SystemData.type, "system")))
 			.orderBy(desc(SystemData.createdAt))
+			.limit(1)
 	)[0];
 
-	if (!systemData) {
+	if (!system) {
 		throw new AppError(SystemErrors.NOT_FOUND);
 	}
 
-	return systemData;
+	const cpu = (
+		await db
+			.select()
+			.from(SystemData)
+			.where(and(eq(SystemData.hostId, hostId), eq(SystemData.type, "cpu")))
+			.orderBy(desc(SystemData.createdAt))
+			.limit(1)
+	)[0];
+
+	if (!cpu) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const disk = (
+		await db
+			.select()
+			.from(SystemData)
+			.where(and(eq(SystemData.hostId, hostId), eq(SystemData.type, "disk")))
+			.orderBy(desc(SystemData.createdAt))
+			.limit(1)
+	)[0];
+
+	if (!disk) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	return { system, cpu, disk };
 };
 
 const getHistoryData = async (
