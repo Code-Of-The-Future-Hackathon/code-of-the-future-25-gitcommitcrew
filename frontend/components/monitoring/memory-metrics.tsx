@@ -15,7 +15,8 @@ export function MemoryMetrics({
 	hostId: string;
 	metrics: any;
 }) {
-	const [interval, setInterval] = useState<number>(3);
+	const [intervalA, setIntervalA] = useState<number>(5);
+	const [intervalB, setIntervalB] = useState<number>(5);
 	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
 	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
@@ -72,16 +73,16 @@ export function MemoryMetrics({
 				<CustomChart
 					title="Memory Used"
 					data={usedMemory}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalA}
+					onIntervalChange={setIntervalA}
 					formatValue={formatBytes}
 					domain={[0, total]}
 				/>
 				<CustomChart
 					title="Swap Usage"
 					data={metrics.swap}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalB}
+					onIntervalChange={setIntervalB}
 					formatValue={formatBytes}
 					domain={[0, 100000]}
 				/>

@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { formatBytes } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { CustomChart } from "./custom-chart";
 import { useSocket } from "@/app/hooks/useSocket";
 import { api } from "@/lib/api";
 import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
 export function StorageMetrics({ hostId }: { hostId: string }) {
-	const [interval, setInterval] = useState<number>(3);
 	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
 	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 

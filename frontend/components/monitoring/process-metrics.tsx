@@ -16,7 +16,9 @@ import { api } from "@/lib/api";
 import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
 export function ProcessMetrics({ hostId }: { hostId: string }) {
-	const [interval, setInterval] = useState<number>(3);
+	const [intervalA, setIntervalA] = useState<number>(5);
+	const [intervalB, setIntervalB] = useState<number>(5);
+	const [intervalC, setIntervalC] = useState<number>(5);
 	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
 	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
@@ -82,24 +84,24 @@ export function ProcessMetrics({ hostId }: { hostId: string }) {
 				<CustomChart
 					title="Total CPU Load"
 					data={loadData}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalA}
+					onIntervalChange={setIntervalA}
 					formatValue={(v) => `${v.toFixed(1)}%`}
 					domain={[0, 100]}
 				/>
 				<CustomChart
 					title="User CPU Load"
 					data={userLoadData}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalB}
+					onIntervalChange={setIntervalB}
 					formatValue={(v) => `${v.toFixed(1)}%`}
 					domain={[0, 100]}
 				/>
 				<CustomChart
 					title="System CPU Load"
 					data={systemLoadData}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalC}
+					onIntervalChange={setIntervalC}
 					formatValue={(v) => `${v.toFixed(1)}%`}
 					domain={[0, 100]}
 				/>

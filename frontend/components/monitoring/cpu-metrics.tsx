@@ -7,7 +7,9 @@ import { api } from "@/lib/api";
 import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
 export function CPUMetrics({ hostId }: { hostId: string }) {
-	const [interval, setInterval] = useState<number>(3);
+	const [intervalA, setIntervalA] = useState<number>(5);
+	const [intervalB, setIntervalB] = useState<number>(5);
+	const [intervalC, setIntervalC] = useState<number>(5);
 	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
 	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
@@ -71,8 +73,8 @@ export function CPUMetrics({ hostId }: { hostId: string }) {
 				<CustomChart
 					title="CPU Usage"
 					data={cpuUsage}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalA}
+					onIntervalChange={setIntervalA}
 					formatValue={(v) => `${v.toFixed(1)}%`}
 					unit="%"
 					domain={[0, 100]}
@@ -81,8 +83,8 @@ export function CPUMetrics({ hostId }: { hostId: string }) {
 				<CustomChart
 					title="CPU Temperature"
 					data={cpuTemperature}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalB}
+					onIntervalChange={setIntervalB}
 					formatValue={(v) => `${v.toFixed(1)}°C`}
 					unit="°C"
 					domain={[20, 90]}
@@ -91,8 +93,8 @@ export function CPUMetrics({ hostId }: { hostId: string }) {
 				<CustomChart
 					title="CPU Frequency"
 					data={cpuFrequency}
-					interval={interval}
-					onIntervalChange={setInterval}
+					interval={intervalB}
+					onIntervalChange={setIntervalB}
 					formatValue={(v) => `${(v / 1000).toFixed(2)} GHz`}
 					unit="GHz"
 					color="hsl(var(--chart-3))"

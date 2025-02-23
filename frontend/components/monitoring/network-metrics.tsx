@@ -9,7 +9,8 @@ import { api } from "@/lib/api";
 import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
 export function NetworkMetrics({ hostId }: { hostId: string }) {
-	const [interval, setInterval] = useState<number>(3);
+	const [intervalA, setIntervalA] = useState<number>(5);
+	const [intervalB, setIntervalB] = useState<number>(5);
 	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
 	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
@@ -85,16 +86,16 @@ export function NetworkMetrics({ hostId }: { hostId: string }) {
 							<CustomChart
 								title="Received Data"
 								data={getInterfaceData(iface.iface, "rx_sec")}
-								interval={interval}
-								onIntervalChange={setInterval}
+								interval={intervalA}
+								onIntervalChange={setIntervalA}
 								formatValue={(v) => `${formatBytes(v)}/s`}
 							/>
 
 							<CustomChart
 								title="Transmitted Data"
 								data={getInterfaceData(iface.iface, "tx_sec")}
-								interval={interval}
-								onIntervalChange={setInterval}
+								interval={intervalB}
+								onIntervalChange={setIntervalB}
 								formatValue={(v) => `${formatBytes(v)}/s`}
 							/>
 
