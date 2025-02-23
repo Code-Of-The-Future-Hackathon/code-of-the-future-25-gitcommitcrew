@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 			<header className="border-b">
 				<div className="container mx-auto px-4">
 					<div className="flex h-16 items-center justify-between">
-						<div className="flex items-center gap-4">
+						<div className="flex w-full items-center justify-end gap-4">
 							<Button variant="ghost" size="icon">
 								<Bell className="h-5 w-5" />
 							</Button>
