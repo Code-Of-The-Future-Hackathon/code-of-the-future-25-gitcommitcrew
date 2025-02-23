@@ -56,53 +56,6 @@ export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
 
 	return (
 		<section id="overview" className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h2 className="text-2xl font-bold">System Overview</h2>
-					<p className="text-muted-foreground">
-						Last updated: {new Date().toLocaleTimeString()}
-					</p>
-				</div>
-			</div>
-
-			{/* Quick Stats */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<QuickStat
-					title="System Uptime"
-					value={formatDistanceToNow(Date.now() - systemInfo.os.uptime * 1000)}
-					icon={<Clock className="h-4 w-4" />}
-					trend="stable"
-				/>
-				<QuickStat
-					title="CPU Load"
-					value={`${latestCpuUsage.toFixed(1)}%`}
-					icon={<ArrowUpRight className="h-4 w-4" />}
-					trend={
-						latestCpuUsage > 80
-							? "critical"
-							: latestCpuUsage > 60
-								? "warning"
-								: "good"
-					}
-				/>
-				<QuickStat
-					title="Memory Usage"
-					value={`${((latestMemoryUsage / systemInfo.memory.total) * 100).toFixed(1)}%`}
-					icon={<ArrowUpRight className="h-4 w-4" />}
-					trend={
-						latestMemoryUsage / systemInfo.memory.total > 0.8
-							? "warning"
-							: "good"
-					}
-				/>
-				<QuickStat
-					title="Network Traffic"
-					value={`↓${formatBytes(latestNetworkIn)}/s ↑${formatBytes(latestNetworkOut)}/s`}
-					icon={<ArrowUpRight className="h-4 w-4" />}
-					trend="stable"
-				/>
-			</div>
-
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				{/* System Information */}
 				<Card>
