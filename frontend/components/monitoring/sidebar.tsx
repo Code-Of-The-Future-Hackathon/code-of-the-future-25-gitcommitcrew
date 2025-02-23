@@ -67,7 +67,7 @@ export function Sidebar({
 			<div className="space-y-4">
 				<div className="flex items-center space-x-2">
 					<Server className="h-6 w-6" />
-					<h2 className="text-lg font-semibold">{systemInfo.hostname}</h2>
+					<h2 className="text-lg font-semibold">{sysInformation.hostname}</h2>
 				</div>
 
 				<nav className="space-y-2">
