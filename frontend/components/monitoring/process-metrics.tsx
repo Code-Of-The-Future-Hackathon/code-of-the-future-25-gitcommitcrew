@@ -35,14 +35,13 @@ export function ProcessMetrics({ hostId }: { hostId: string }) {
 			.then(({ data }) => {
 				if (data.success) {
 					setHistoricData(data.data.process);
-					console.log(data.data.process);
 				}
 			});
 	}, [hostId]);
 
 	// Merge historic and current data properly
 	const combinedData = [...historicData, ...currentData].filter(
-		(entry) => entry?.data?.data?.process,
+		(entry) => entry?.data?.data?.currentLoad,
 	);
 
 	// Show a fallback if no valid data is available
@@ -56,84 +55,80 @@ export function ProcessMetrics({ hostId }: { hostId: string }) {
 	}
 
 	// Transform data for charts
-	const totalProcesses = combinedData.map((inner) => ({
+	const loadData = combinedData.map((inner) => ({
 		timestamp: inner.createdAt,
-		value: inner.data?.data?.process?.total ?? 0,
+		value: inner.data?.data?.currentLoad?.currentLoad ?? 0,
 	}));
 
-	const runningProcesses = combinedData.map((inner) => ({
+	const userLoadData = combinedData.map((inner) => ({
 		timestamp: inner.createdAt,
-		value: inner.data?.data?.process?.running ?? 0,
+		value: inner.data?.data?.currentLoad?.currentLoadUser ?? 0,
 	}));
 
-	const blockedProcesses = combinedData.map((inner) => ({
+	const systemLoadData = combinedData.map((inner) => ({
 		timestamp: inner.createdAt,
-		value: inner.data?.data?.process?.blocked ?? 0,
+		value: inner.data?.data?.currentLoad?.currentLoadSystem ?? 0,
 	}));
 
-	// Get latest top processes
-	const latestData = combinedData[combinedData.length - 1];
-	const topProcesses = latestData?.data?.data?.process?.topProcesses ?? [];
+	// Get latest load data
+	const latestData =
+		combinedData[combinedData.length - 1]?.data?.data?.currentLoad;
+	const cpuCores = latestData?.cpus ?? [];
 
 	return (
 		<section id="processes" className="space-y-6">
-			<h2 className="text-2xl font-bold">Process Statistics</h2>
+			<h2 className="text-2xl font-bold">CPU Load Statistics</h2>
 			<div className="grid grid-cols-1 gap-6">
 				<CustomChart
-					title="Total Processes"
-					data={totalProcesses}
+					title="Total CPU Load"
+					data={loadData}
 					interval={interval}
 					onIntervalChange={setInterval}
-					formatValue={(v) => v.toString()}
+					formatValue={(v) => `${v.toFixed(1)}%`}
+					domain={[0, 100]}
 				/>
 				<CustomChart
-					title="Running Processes"
-					data={runningProcesses}
+					title="User CPU Load"
+					data={userLoadData}
 					interval={interval}
 					onIntervalChange={setInterval}
-					formatValue={(v) => v.toString()}
+					formatValue={(v) => `${v.toFixed(1)}%`}
+					domain={[0, 100]}
 				/>
 				<CustomChart
-					title="Blocked Processes"
-					data={blockedProcesses}
+					title="System CPU Load"
+					data={systemLoadData}
 					interval={interval}
 					onIntervalChange={setInterval}
-					formatValue={(v) => v.toString()}
+					formatValue={(v) => `${v.toFixed(1)}%`}
+					domain={[0, 100]}
 				/>
 			</div>
 			<Card>
 				<CardHeader>
-					<CardTitle>Top Processes</CardTitle>
+					<CardTitle>CPU Cores Load</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>PID</TableHead>
-								<TableHead>Process</TableHead>
-								<TableHead>CPU %</TableHead>
-								<TableHead>Memory %</TableHead>
-								<TableHead>State</TableHead>
+								<TableHead>Core</TableHead>
+								<TableHead>Load %</TableHead>
+								<TableHead>User %</TableHead>
+								<TableHead>System %</TableHead>
+								<TableHead>Nice %</TableHead>
+								<TableHead>Idle %</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{topProcesses.map((process: any) => (
-								<TableRow key={process.pid}>
-									<TableCell>{process.pid}</TableCell>
-									<TableCell>{process.name}</TableCell>
-									<TableCell>{process.cpu.toFixed(1)}%</TableCell>
-									<TableCell>{process.memory.toFixed(1)}%</TableCell>
-									<TableCell>
-										<span
-											className={`rounded-full px-2 py-1 text-xs ${
-												process.state === "running"
-													? "bg-green-500/10 text-green-500"
-													: "bg-yellow-500/10 text-yellow-500"
-											}`}
-										>
-											{process.state}
-										</span>
-									</TableCell>
+							{cpuCores.map((core, index) => (
+								<TableRow key={index}>
+									<TableCell>Core {index + 1}</TableCell>
+									<TableCell>{core.load.toFixed(1)}%</TableCell>
+									<TableCell>{core.loadUser.toFixed(1)}%</TableCell>
+									<TableCell>{core.loadSystem.toFixed(1)}%</TableCell>
+									<TableCell>{core.loadNice.toFixed(1)}%</TableCell>
+									<TableCell>{core.loadIdle.toFixed(1)}%</TableCell>
 								</TableRow>
 							))}
 						</TableBody>
