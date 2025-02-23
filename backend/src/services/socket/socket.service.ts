@@ -1,12 +1,9 @@
 import { Server, Socket } from "socket.io";
-import { and, desc, eq, gte, lte } from "drizzle-orm";
 
 import logger from "@logger";
 import { Data, EventData, events } from "../../../../events";
 import {
-	getHostByOrganizationIdAndHostId,
 	getHostByPasswordHash,
-	getUserOrganizationByUserId,
 	getUsersFromOrganizationByPasswordHash,
 } from "@services/system/system.service";
 import { db } from "@config/db";
@@ -32,12 +29,26 @@ const getIO = () => {
 const setupServerListeners = (io: Server) => {
 	io.on("connection", (socket: Socket) => {
 		logger.info("Client connected");
+		const req = socket.request as unknown as Express.Request;
+		const user = req.session?.user as { id: string } | undefined;
 
-		const user = (socket.request as unknown as Express.Request).session.user as
-			| { id: string }
-			| undefined;
+		logger.info(req.session.user);
+
+		// Disconnect early if the user isn’t authenticated
+		if (!user) {
+			logger.warn("User not authenticated, disconnecting socket.");
+			socket.disconnect();
+			return;
+		}
+
+		// If a user is already connected, disconnect the duplicate socket
+		if (userSocketMap.has(user.id)) {
+			socket.disconnect();
+			return;
+		}
 
 		if (user) {
+			logger.info(user);
 			const socketId = userSocketMap.get(user.id);
 
 			if (!socketId) {
@@ -85,25 +96,11 @@ const setupServerListeners = (io: Server) => {
 
 		socket.on(
 			events.CLIENT_REQUEST_DATA,
-			async (hostId: string, data: Data[]) => {
+			async ({ data }: { data: Data[] }) => {
 				if (!user) {
 					return;
 				}
-
-				const userOrganization = await getUserOrganizationByUserId(user.id);
-
-				if (!userOrganization) {
-					return;
-				}
-
-				const host = await getHostByOrganizationIdAndHostId(
-					userOrganization.organizationId,
-					hostId,
-				);
-
-				if (!host) {
-					return;
-				}
+				logger.info("here");
 
 				const socket = userSocketMap.get(user.id);
 
@@ -111,21 +108,7 @@ const setupServerListeners = (io: Server) => {
 					return;
 				}
 
-				// for (const type of socket.requestedData) {
-				// 	emitToSocket(host.id, true, events.HOST_UPDATE_INTERVAL, {
-				// 		type,
-				// 		isFast: false,
-				// 	});
-				// }
-
 				socket.requestedData = data;
-
-				// for (const type of data) {
-				// 	emitToSocket(host.id, true, events.HOST_UPDATE_INTERVAL, {
-				// 		type,
-				// 		isFast: true,
-				// 	});
-				// }
 			},
 		);
 
