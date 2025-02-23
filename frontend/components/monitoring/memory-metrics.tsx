@@ -5,10 +5,19 @@ import { formatBytes } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CustomChart } from "./custom-chart";
 import { useSocket } from "@/app/hooks/useSocket";
+import { api } from "@/lib/api";
+import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
-export function MemoryMetrics({ metrics }: { metrics: any }) {
+export function MemoryMetrics({
+	hostId,
+	metrics,
+}: {
+	hostId: string;
+	metrics: any;
+}) {
 	const [interval, setInterval] = useState<number>(3);
-	const { changeRequestedData, isConnected, data } = useSocket();
+	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
+	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
 	useEffect(() => {
 		if (isConnected) {
@@ -16,8 +25,26 @@ export function MemoryMetrics({ metrics }: { metrics: any }) {
 		}
 	}, [isConnected, changeRequestedData]);
 
-	// Show a fallback if no data is available
-	if (!data.length) {
+	useEffect(() => {
+		api
+			.post("/system/host/history", {
+				hostId,
+				types: ["memory"],
+			})
+			.then(({ data }) => {
+				if (data.success) {
+					setHistoricData(data.data.memory);
+				}
+			});
+	}, [hostId]);
+
+	// Merge historic and current data properly
+	const combinedData = [...historicData, ...currentData].filter(
+		(entry) => entry?.data?.data?.mem,
+	);
+
+	// Show a fallback if no valid data is available
+	if (combinedData.length === 0) {
 		return (
 			<section id="memory" className="space-y-6">
 				<h2 className="text-2xl font-bold">Memory Usage</h2>
@@ -26,12 +53,16 @@ export function MemoryMetrics({ metrics }: { metrics: any }) {
 		);
 	}
 
-	// Destructure memory details from the first data point
-	const { available, total } = data[0].data.data.mem;
+	// Safely extract memory details
+	const firstEntry = combinedData[0]?.data?.data?.mem ?? {
+		available: 0,
+		total: 1,
+	};
+	const { available, total } = firstEntry;
 
-	const usedMemory = data.map((inner) => ({
-		timestamp: inner.timestamp.getTime(),
-		value: inner.data.data.mem.available,
+	const usedMemory = combinedData.map((inner) => ({
+		timestamp: inner.createdAt,
+		value: inner.data?.data?.mem?.available ?? 0,
 	}));
 
 	return (
