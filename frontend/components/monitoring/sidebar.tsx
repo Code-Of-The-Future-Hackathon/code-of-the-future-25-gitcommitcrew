@@ -1,5 +1,6 @@
 "use client";
 
+import { api } from "@/lib/api";
 import { formatBytes } from "@/lib/utils";
 import { SystemInfo } from "@/types/monitoring";
 import {
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navigation = [
 	{ name: "Overview", href: "", icon: Activity },
@@ -33,6 +35,32 @@ export function Sidebar({
 	deviceId: string;
 }) {
 	const pathname = usePathname();
+
+	const [sysInformation, setSysInformation] = useState<any>({});
+	useEffect(() => {
+		const asFn = async () => {
+			const { data } = await api.post("/system/host/system", {
+				hostId: deviceId,
+			});
+			console.log(data);
+			if (data.success) {
+				const system = data.data.system.data;
+				const cpu = data.data.cpu.data.data;
+				const disk = data.data.disk.data.data.diskLayout[0].name;
+				console.log(cpu);
+				console.log(data);
+				console.log(system);
+				setSysInformation({
+					hostname: system.data.osInfo.hostname,
+					distro: system.data.osInfo.distro,
+					brand: cpu.cpu.brand,
+					disk,
+				});
+			}
+		};
+
+		asFn();
+	}, []);
 
 	return (
 		<div className="bg-card w-64 border-r p-4">
@@ -67,14 +95,10 @@ export function Sidebar({
 				<div className="border-t pt-4">
 					<h3 className="mb-2 text-sm font-medium">System Information</h3>
 					<div className="text-muted-foreground space-y-2 text-sm">
-						<div>
-							OS: {systemInfo.os.type} {systemInfo.os.release}
-						</div>
-						<div>CPU: {systemInfo.cpu.model}</div>
-						<div>
-							Cores: {systemInfo.cpu.cores}/{systemInfo.cpu.threads}
-						</div>
-						<div>Memory: {formatBytes(systemInfo.memory.total)}</div>
+						<div>OS: {sysInformation.distro || ""}</div>
+						<div>CPU: {sysInformation.brand || ""}</div>
+
+						<div>Disk: {sysInformation.disk || ""}</div>
 					</div>
 				</div>
 			</div>

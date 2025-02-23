@@ -6,6 +6,8 @@ import { SystemInfo, SystemMetrics } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/context/user";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 interface OverviewProps {
 	systemInfo: SystemInfo;
@@ -13,8 +15,35 @@ interface OverviewProps {
 	deviceId: string;
 }
 
-export function Overview({ systemInfo, metrics }: OverviewProps) {
+export function Overview({ systemInfo, metrics, deviceId }: OverviewProps) {
 	// Get the latest values from metrics
+
+	const [sysInformation, setSysInformation] = useState<any>({});
+	useEffect(() => {
+		const asFn = async () => {
+			const { data } = await api.post("/system/host/system", {
+				hostId: deviceId,
+			});
+			console.log(data);
+			if (data.success) {
+				const system = data.data.system.data;
+				const cpu = data.data.cpu.data.data;
+				const disk = data.data.disk.data.data.diskLayout[0].name;
+				console.log(cpu);
+				console.log(data);
+				console.log(system);
+				setSysInformation({
+					hostname: system.data.osInfo.hostname,
+					distro: system.data.osInfo.distro,
+					brand: cpu.cpu.brand,
+					disk,
+				});
+			}
+		};
+
+		asFn();
+	}, []);
+
 	const latestCpuUsage = metrics.cpu.usage[metrics.cpu.usage.length - 1].value;
 	const latestMemoryUsage =
 		metrics.memory.used[metrics.memory.used.length - 1].value;
@@ -22,21 +51,6 @@ export function Overview({ systemInfo, metrics }: OverviewProps) {
 		metrics.network.rx_bytes[metrics.network.rx_bytes.length - 1].value;
 	const latestNetworkOut =
 		metrics.network.tx_bytes[metrics.network.tx_bytes.length - 1].value;
-
-	const alerts = [
-		{
-			id: 1,
-			severity: "warning",
-			message: "High CPU temperature",
-			time: "2m ago",
-		},
-		{
-			id: 2,
-			severity: "info",
-			message: "System update available",
-			time: "1h ago",
-		},
-	];
 
 	const { user } = useUser();
 
@@ -97,25 +111,17 @@ export function Overview({ systemInfo, metrics }: OverviewProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							<InfoItem label="Hostname" value={systemInfo.hostname} />
+							<InfoItem
+								label="Hostname"
+								value={sysInformation.hostname || ""}
+							/>
 							<InfoItem
 								label="Operating System"
-								value={`${systemInfo.os.type} ${systemInfo.os.release}`}
+								value={`${sysInformation.distro || ""}`}
 							/>
-							<InfoItem
-								label="CPU"
-								value={`${systemInfo.cpu.model} (${systemInfo.cpu.cores} cores, ${systemInfo.cpu.threads} threads)`}
-							/>
-							<InfoItem
-								label="Memory"
-								value={`${formatBytes(systemInfo.memory.total)} ${systemInfo.memory.type} @ ${systemInfo.memory.speed}MHz`}
-							/>
-							<InfoItem
-								label="Storage"
-								value={systemInfo.storage.devices
-									.map((d) => `${d.device} (${formatBytes(d.size)})`)
-									.join(", ")}
-							/>
+							<InfoItem label="CPU" value={`${sysInformation.brand || ""}`} />
+
+							<InfoItem label="Storage" value={sysInformation.disk || ""} />
 						</div>
 					</CardContent>
 				</Card>
@@ -125,30 +131,6 @@ export function Overview({ systemInfo, metrics }: OverviewProps) {
 					<CardHeader>
 						<CardTitle>Recent Alerts</CardTitle>
 					</CardHeader>
-					<CardContent>
-						<div className="space-y-4">
-							{alerts.map((alert) => (
-								<div
-									key={alert.id}
-									className="bg-muted/50 flex items-start space-x-4 rounded-lg p-3"
-								>
-									<AlertCircle
-										className={
-											alert.severity === "warning"
-												? "text-yellow-500"
-												: "text-blue-500"
-										}
-									/>
-									<div className="flex-1">
-										<p className="font-medium">{alert.message}</p>
-										<p className="text-muted-foreground text-sm">
-											{alert.time}
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
-					</CardContent>
 				</Card>
 			</div>
 		</section>
