@@ -54,6 +54,17 @@ const setupServerListeners = (io: Server) => {
 
 			hostSocketMap.set(host.id, { connection: socket.id });
 
+			const createdData = (
+				await db
+					.insert(SystemData)
+					.values({ hostId: host.id, type: data.type, data })
+					.returning()
+			)[0];
+
+			if (!createdData) {
+				return;
+			}
+
 			if (usersOrganization && usersOrganization.length > 0) {
 				for (const { userId } of usersOrganization) {
 					const userSockets = userSocketMap.get(userId);
@@ -63,16 +74,12 @@ const setupServerListeners = (io: Server) => {
 						if (userSocket.requestedData.includes(data.type)) {
 							emitToSocket(userSocket.connection, events.SERVER_NEW_DATA, {
 								hostId: host.id,
-								data,
+								data: createdData,
 							});
 						}
 					}
 				}
 			}
-
-			await db
-				.insert(SystemData)
-				.values({ hostId: host.id, type: data.type, data });
 		});
 
 		socket.on(events.CLIENT_REQUEST_DATA, ({ data }: { data: Data[] }) => {
