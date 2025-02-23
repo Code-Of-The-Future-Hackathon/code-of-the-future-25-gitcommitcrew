@@ -93,9 +93,9 @@ export function CPUMetrics({ hostId }: { hostId: string }) {
 				<CustomChart
 					title="CPU Frequency"
 					data={cpuFrequency}
-					interval={intervalB}
-					onIntervalChange={setIntervalB}
-					formatValue={(v) => `${(v / 1000).toFixed(2)} GHz`}
+					interval={intervalC}
+					onIntervalChange={setIntervalC}
+					formatValue={(v) => `${v.toFixed(2)} GHz`}
 					unit="GHz"
 					color="hsl(var(--chart-3))"
 				/>
