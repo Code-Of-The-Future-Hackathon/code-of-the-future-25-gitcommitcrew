@@ -10,7 +10,6 @@ import {
 	CartesianGrid,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TimeInterval } from "@/types/monitoring";
 import {
 	Select,
 	SelectContent,
@@ -18,12 +17,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { formatSeconds, parseFormattedSeconds } from "./util";
 
 interface CustomChartProps {
 	title: string;
 	data: { timestamp: number; value: number }[];
-	interval: TimeInterval;
-	onIntervalChange: (interval: TimeInterval) => void;
+	interval: number;
+	onIntervalChange: (interval: number) => void;
 	formatValue?: (value: number) => string;
 	unit?: string;
 	domain?: [number, number];
@@ -31,24 +31,13 @@ interface CustomChartProps {
 	color?: string;
 }
 
-const intervals: TimeInterval[] = [
-	"5s",
-	"10s",
-	"30s",
-	"1m",
-	"5m",
-	"15m",
-	"30m",
-	"1h",
-	"3h",
-	"6h",
-	"12h",
-	"24h",
+const intervals: number[] = [
+	5, 10, 30, 60, 300, 900, 1800, 3600, 10800, 21600, 43200, 86400,
 ];
 
 export function CustomChart({
 	title,
-	data,
+	data: outerData,
 	interval,
 	onIntervalChange,
 	formatValue = (v) => v.toString(),
@@ -57,6 +46,10 @@ export function CustomChart({
 	gridRows = 5,
 	color = "hsl(var(--primary))",
 }: CustomChartProps) {
+	const data =
+		interval == 1
+			? outerData
+			: outerData.filter((_, index) => (index + 1) % interval === 0);
 	const values = data.map((d) => d.value);
 	const defaultDomain: [number, number] = [
 		Math.floor(Math.min(...values) * 0.9),
@@ -68,16 +61,18 @@ export function CustomChart({
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle className="text-base font-medium">{title}</CardTitle>
 				<Select
-					value={interval}
-					onValueChange={(value) => onIntervalChange(value as TimeInterval)}
+					value={formatSeconds(interval)}
+					onValueChange={(value) =>
+						onIntervalChange(parseFormattedSeconds(value))
+					}
 				>
 					<SelectTrigger className="w-[100px]">
 						<SelectValue placeholder="Interval" />
 					</SelectTrigger>
 					<SelectContent>
 						{intervals.map((i) => (
-							<SelectItem key={i} value={i}>
-								{i}
+							<SelectItem key={i} value={formatSeconds(i)}>
+								{formatSeconds(i)}
 							</SelectItem>
 						))}
 					</SelectContent>
