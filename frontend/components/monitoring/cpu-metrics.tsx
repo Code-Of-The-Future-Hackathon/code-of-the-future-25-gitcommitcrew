@@ -1,17 +1,68 @@
 "use client";
 
-import { CustomChart } from "./custom-chart";
 import { useEffect, useState } from "react";
-import { TimeInterval } from "@/types/monitoring";
+import { CustomChart } from "./custom-chart";
 import { useSocket } from "@/app/hooks/useSocket";
+import { api } from "@/lib/api";
+import { TSystemData } from "../../../backend/src/services/system/models/systemData";
 
-export function CPUMetrics({ metrics }: { metrics: any }) {
-	const [interval, setInterval] = useState<TimeInterval>("5m");
-	const { changeRequestedData, isConnected } = useSocket();
+export function CPUMetrics({ hostId }: { hostId: string }) {
+	const [interval, setInterval] = useState<number>(3);
+	const [historicData, setHistoricData] = useState<TSystemData[]>([]);
+	const { changeRequestedData, isConnected, data: currentData } = useSocket();
 
 	useEffect(() => {
-		changeRequestedData(["cpu", "process"]);
-	}, [isConnected]);
+		if (isConnected) {
+			changeRequestedData(["cpu"]);
+		}
+	}, [isConnected, changeRequestedData]);
+
+	useEffect(() => {
+		api
+			.post("/system/host/history", {
+				hostId,
+				types: ["cpu"],
+			})
+			.then(({ data }) => {
+				if (data.success) {
+					setHistoricData(data.data.cpu);
+				}
+			});
+	}, [hostId]);
+
+	// Merge historic and current data properly
+	const combinedData = [...historicData, ...currentData].filter(
+		(entry) => entry?.data?.data,
+	);
+
+	console.log(combinedData[0]);
+
+	// Show a fallback if no valid data is available
+	if (combinedData.length === 0) {
+		return (
+			<section className="space-y-6">
+				<h2 className="text-2xl font-bold">CPU Metrics</h2>
+				<div>Loading...</div>
+			</section>
+		);
+	}
+
+	// Transform data for charts
+	const cpuUsage = combinedData.map((inner) => ({
+		timestamp: inner.createdAt,
+		value:
+			(inner.data.data.cpu?.speed / inner.data.data.cpu?.speedMax) * 100 ?? 0,
+	}));
+
+	const cpuTemperature = combinedData.map((inner) => ({
+		timestamp: inner.createdAt,
+		value: inner.data.data.cpuTemperature?.main ?? 0,
+	}));
+
+	const cpuFrequency = combinedData.map((inner) => ({
+		timestamp: inner.createdAt,
+		value: inner.data.data.cpuCurrentSpeed?.avg ?? 0,
+	}));
 
 	return (
 		<section className="space-y-6">
@@ -19,7 +70,7 @@ export function CPUMetrics({ metrics }: { metrics: any }) {
 			<div className="grid grid-cols-1 gap-6">
 				<CustomChart
 					title="CPU Usage"
-					data={metrics.usage}
+					data={cpuUsage}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => `${v.toFixed(1)}%`}
@@ -29,7 +80,7 @@ export function CPUMetrics({ metrics }: { metrics: any }) {
 				/>
 				<CustomChart
 					title="CPU Temperature"
-					data={metrics.temperature}
+					data={cpuTemperature}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => `${v.toFixed(1)}°C`}
@@ -39,7 +90,7 @@ export function CPUMetrics({ metrics }: { metrics: any }) {
 				/>
 				<CustomChart
 					title="CPU Frequency"
-					data={metrics.frequency}
+					data={cpuFrequency}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => `${(v / 1000).toFixed(2)} GHz`}
