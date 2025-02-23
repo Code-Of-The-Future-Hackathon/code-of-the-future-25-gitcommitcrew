@@ -5,6 +5,8 @@ import {
 	getClaimedHosts,
 	getLatestData,
 	getUnclaimedHosts,
+	getSystemData,
+	getHistoryData,
 } from "@controllers/system";
 import { validateBodySchema } from "@middlewares/validation";
 import { addNewHostValidation } from "@services/system/validations/addNewHost";
@@ -32,6 +34,20 @@ router.post(
 	isAuth,
 	validateBodySchema(getLatestDataValidation),
 	getLatestData,
+);
+
+router.post(
+	"/host/system",
+	isAuth,
+	validateBodySchema(getLatestDataValidation),
+	getSystemData,
+);
+
+router.post(
+	"/host/history",
+	isAuth,
+	validateBodySchema(getLatestDataValidation),
+	getHistoryData,
 );
 
 export default router;

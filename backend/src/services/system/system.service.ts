@@ -1,5 +1,11 @@
 import { db } from "@config/db";
-import { Host, NewHost, OrganizationHost, SystemData } from "./models";
+import {
+	Host,
+	NewHost,
+	OrganizationHost,
+	SystemData,
+	TSystemData,
+} from "./models";
 import { AppError } from "@common/error/appError";
 import { SystemErrors } from "./constants/errors";
 import { and, eq, inArray, desc } from "drizzle-orm";
@@ -210,6 +216,80 @@ const getLatestData = async (userId: string, hostId: string, types: Data[]) => {
 	return systemData;
 };
 
+const getSystemData = async (userId: string, hostId: string) => {
+	const userOrganization = await getUserOrganizationByUserId(userId);
+
+	if (!userOrganization) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const host = await getHostByOrganizationIdAndHostId(
+		userOrganization.organizationId,
+		hostId,
+	);
+
+	if (!host) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const systemData = (
+		await db
+			.select()
+			.from(SystemData)
+			.where(and(eq(SystemData.hostId, hostId), eq(SystemData.type, "system")))
+			.orderBy(desc(SystemData.createdAt))
+	)[0];
+
+	if (!systemData) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	return systemData;
+};
+
+const getHistoryData = async (
+	userId: string,
+	hostId: string,
+	types: Data[],
+) => {
+	const userOrganization = await getUserOrganizationByUserId(userId);
+
+	if (!userOrganization) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const host = await getHostByOrganizationIdAndHostId(
+		userOrganization.organizationId,
+		hostId,
+	);
+
+	if (!host) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const systemData = await db
+		.select()
+		.from(SystemData)
+		.where(and(eq(SystemData.hostId, hostId), inArray(SystemData.type, types)))
+		.orderBy(SystemData.type, desc(SystemData.createdAt));
+
+	if (!systemData) {
+		throw new AppError(SystemErrors.NOT_FOUND);
+	}
+
+	const mappedData: Record<string, TSystemData[]> = {};
+
+	for (const data of systemData) {
+		if (!mappedData[data.type]) {
+			mappedData[data.type] = [];
+		}
+
+		mappedData[data.type]?.push(data);
+	}
+
+	return mappedData;
+};
+
 export {
 	getUserOrganizationByUserId,
 	getHostByOrganizationIdAndHostId,
@@ -220,4 +300,6 @@ export {
 	getHostByPasswordHash,
 	getOrganizationNameById,
 	getLatestData,
+	getSystemData,
+	getHistoryData,
 };

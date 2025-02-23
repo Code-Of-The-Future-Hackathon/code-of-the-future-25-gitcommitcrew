@@ -19,7 +19,8 @@ const getLatestDataValidation = z.object({
 			]),
 			{ message: createZodMessage(SystemErrors.INVALID_DATA) },
 		)
-		.min(1, { message: createZodMessage(SystemErrors.INVALID_DATA) }),
+		.min(1, { message: createZodMessage(SystemErrors.INVALID_DATA) })
+		.optional(),
 });
 
 export type TGetLatestData = z.infer<typeof getLatestDataValidation>;

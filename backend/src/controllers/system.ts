@@ -5,12 +5,16 @@ import {
 	claimHost as claimHostService,
 	getHosts,
 	getLatestData as getLatestDataService,
+	getSystemData as getSystemDataService,
+	getHistoryData as getHistoryDataService,
 } from "@services/system/system.service";
 
 import asyncErrorHandler from "@utils/asyncErrorHandler";
 import { TNewHost } from "@services/system/validations/addNewHost";
 import { TClaimHost } from "@services/system/validations/claimHost";
 import { TGetLatestData } from "@services/system/validations/getLatestData";
+import { AppError } from "@common/error/appError";
+import { SystemErrors } from "@services/system/constants/errors";
 
 const addNewHost = asyncErrorHandler(async (req: Request, res: Response) => {
 	const host = req.body as TNewHost;
@@ -47,10 +51,35 @@ const getUnclaimedHosts = asyncErrorHandler(
 const getLatestData = asyncErrorHandler(async (req: Request, res: Response) => {
 	const { hostId, types } = req.body as TGetLatestData;
 
+	if (!types) {
+		throw new AppError(SystemErrors.INVALID_DATA);
+	}
+
 	const latestData = await getLatestDataService(req.user.id, hostId, types);
 
 	res.json({ success: true, data: latestData });
 });
+
+const getSystemData = asyncErrorHandler(async (req: Request, res: Response) => {
+	const { hostId } = req.body as TGetLatestData;
+	const systemData = await getSystemDataService(req.user.id, hostId);
+
+	res.json({ success: true, data: systemData });
+});
+
+const getHistoryData = asyncErrorHandler(
+	async (req: Request, res: Response) => {
+		const { hostId, types } = req.body as TGetLatestData;
+
+		if (!types) {
+			throw new AppError(SystemErrors.INVALID_DATA);
+		}
+
+		const historyData = await getHistoryDataService(req.user.id, hostId, types);
+
+		res.json({ success: true, data: historyData });
+	},
+);
 
 export {
 	addNewHost,
@@ -58,4 +87,6 @@ export {
 	getClaimedHosts,
 	getUnclaimedHosts,
 	getLatestData,
+	getSystemData,
+	getHistoryData,
 };

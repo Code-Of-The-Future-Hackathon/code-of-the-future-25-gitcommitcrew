@@ -11,11 +11,6 @@ import { SystemData } from "@services/system/models";
 
 let _io: Server | undefined = undefined;
 
-const userSocketMap = new Map<
-	string,
-	{ requestedData: Data[]; connection: string }
->();
-
 const hostSocketMap = new Map<string, { connection: string }>();
 
 const setIO = (io: Server) => {
@@ -27,48 +22,50 @@ const getIO = () => {
 };
 
 const setupServerListeners = (io: Server) => {
+	const userSocketMap = new Map<
+		string,
+		{ requestedData: Data[]; connection: string }[]
+	>();
+
 	io.on("connection", (socket: Socket) => {
-		logger.info("Client connected");
+		logger.info(`Client connected: ${socket.id}`);
 
 		const user = (socket.request as unknown as Express.Request).session.user as
 			| { id: string }
 			| undefined;
 
 		if (user) {
-			if (!userSocketMap.has(user.id)) {
-				userSocketMap.set(user.id, {
-					requestedData: [],
-					connection: socket.id,
-				});
-			} else {
-				socket.disconnect();
-				return;
-			}
+			const userSockets = userSocketMap.get(user.id) ?? [];
+
+			userSockets.push({ requestedData: [], connection: socket.id });
+
+			userSocketMap.set(user.id, userSockets);
 		}
 
 		socket.on(events.HOST_NEW_DATA, async (data: EventData) => {
 			const usersOrganization = await getUsersFromOrganizationByPasswordHash(
 				data.passwordHash,
 			);
-
 			const host = await getHostByPasswordHash(data.passwordHash);
 
 			if (!host) {
 				return;
 			}
 
-			if (!hostSocketMap.has(host.id)) {
-				hostSocketMap.set(host.id, { connection: socket.id });
-			}
+			hostSocketMap.set(host.id, { connection: socket.id });
 
 			if (usersOrganization && usersOrganization.length > 0) {
 				for (const { userId } of usersOrganization) {
-					const userSocket = userSocketMap.get(userId);
-					if (userSocket && userSocket.requestedData.includes(data.type)) {
-						emitToSocket(userId, false, events.SERVER_NEW_DATA, {
-							hostId: host.id,
-							data,
-						});
+					const userSockets = userSocketMap.get(userId);
+					if (!userSockets) continue;
+
+					for (const userSocket of userSockets) {
+						if (userSocket.requestedData.includes(data.type)) {
+							emitToSocket(userSocket.connection, events.SERVER_NEW_DATA, {
+								hostId: host.id,
+								data,
+							});
+						}
 					}
 				}
 			}
@@ -78,52 +75,51 @@ const setupServerListeners = (io: Server) => {
 				.values({ hostId: host.id, type: data.type, data });
 		});
 
-		socket.on(
-			events.CLIENT_REQUEST_DATA,
-			async ({ data }: { data: Data[] }) => {
-				if (!user) {
-					return;
-				}
+		socket.on(events.CLIENT_REQUEST_DATA, ({ data }: { data: Data[] }) => {
+			if (!user) return;
 
-				const socket = userSocketMap.get(user.id);
+			const userSockets = userSocketMap.get(user.id);
+			if (!userSockets) return;
 
-				if (!socket) {
-					return;
-				}
+			const userSocket = userSockets.find((s) => s.connection === socket.id);
+			if (userSocket) {
+				userSocket.requestedData = data;
+			}
 
-				socket.requestedData = data;
-			},
-		);
+			logger.info(`Socket ${socket.id} requested data: ${data}`);
+		});
 
 		socket.on("disconnect", () => {
-			logger.info("Client disconnected");
+			logger.info(`Client disconnected: ${socket.id}`);
 
-			if (user) {
-				userSocketMap.delete(user.id);
+			if (!user) {
+				return;
+			}
+			const userSockets = userSocketMap.get(user.id);
+			if (userSockets) {
+				const updatedSockets = userSockets.filter(
+					(s) => s.connection !== socket.id,
+				);
+				if (updatedSockets.length > 0) {
+					userSocketMap.set(user.id, updatedSockets);
+				} else {
+					userSocketMap.delete(user.id);
+				}
 			}
 		});
 
 		socket.on("error", (error: Error) => {
-			logger.error("Socket error", error);
+			logger.error(`Socket error on ${socket.id}`, error);
 		});
 	});
 };
 
-function emitToSocket(
-	id: string,
-	isHost: boolean,
-	eventName: string,
-	data: unknown,
-) {
+function emitToSocket(connection: string, eventName: string, data: unknown) {
 	const io = getIO();
 
-	const socket = isHost ? hostSocketMap.get(id) : userSocketMap.get(id);
+	if (!io) return;
 
-	if (!socket?.connection) {
-		return;
-	}
-
-	io?.to(socket.connection).emit(eventName, data);
+	io.to(connection).emit(eventName, data);
 }
 
-export { setIO, getIO, setupServerListeners, emitToSocket as emitToUser };
+export { setIO, getIO, setupServerListeners, emitToSocket };
