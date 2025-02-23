@@ -33,8 +33,9 @@ export function NetworkMetrics({ hostId }: { hostId: string }) {
 			});
 	}, [hostId]);
 
+	const currentHostData = currentData[hostId] || []; // Provide a default empty array
 	// Merge historic and current data properly
-	const combinedData = [...historicData, ...currentData].filter(
+	const combinedData = [...historicData, ...currentHostData].filter(
 		(entry) => entry?.data?.data?.networkStats,
 	);
 

@@ -39,8 +39,9 @@ export function MemoryMetrics({
 			});
 	}, [hostId]);
 
+	const currentHostData = currentData[hostId] || []; // Provide a default empty array
 	// Merge historic and current data properly
-	const combinedData = [...historicData, ...currentData].filter(
+	const combinedData = [...historicData, ...currentHostData].filter(
 		(entry) => entry?.data?.data?.mem,
 	);
 
@@ -63,7 +64,7 @@ export function MemoryMetrics({
 
 	const usedMemory = combinedData.map((inner) => ({
 		timestamp: inner.createdAt,
-		value: inner.data?.data?.mem?.available ?? 0,
+		value: inner.data?.data?.mem?.used ?? 0,
 	}));
 
 	return (
