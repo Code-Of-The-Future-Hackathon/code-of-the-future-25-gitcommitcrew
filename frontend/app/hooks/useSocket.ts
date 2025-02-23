@@ -20,7 +20,7 @@ export const useSocket = () => {
 	const [data, setData] = useState([]);
 
 	useEffect(() => {
-		const socketIo = io("http://localhost:3005");
+		const socketIo = io("ws://localhost:3005", { withCredentials: true });
 
 		socketIo.on("connect", () => {
 			setIsConnected(true);

@@ -28,10 +28,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: config.app.client_url,
 		credentials: true,
-		methods: ["GET", "POST"],
-		allowedHeaders: ["authorization", "cookie", "content-type"],
 	}),
 );
 

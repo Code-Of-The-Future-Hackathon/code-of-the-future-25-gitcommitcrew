@@ -29,26 +29,12 @@ const getIO = () => {
 const setupServerListeners = (io: Server) => {
 	io.on("connection", (socket: Socket) => {
 		logger.info("Client connected");
-		const req = socket.request as unknown as Express.Request;
-		const user = req.session?.user as { id: string } | undefined;
 
-		logger.info(req.session.user);
-
-		// Disconnect early if the user isn’t authenticated
-		if (!user) {
-			logger.warn("User not authenticated, disconnecting socket.");
-			socket.disconnect();
-			return;
-		}
-
-		// If a user is already connected, disconnect the duplicate socket
-		if (userSocketMap.has(user.id)) {
-			socket.disconnect();
-			return;
-		}
+		const user = (socket.request as unknown as Express.Request).session.user as
+			| { id: string }
+			| undefined;
 
 		if (user) {
-			logger.info(user);
 			const socketId = userSocketMap.get(user.id);
 
 			if (!socketId) {

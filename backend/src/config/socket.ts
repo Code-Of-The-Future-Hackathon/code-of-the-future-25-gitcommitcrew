@@ -12,10 +12,8 @@ import logger from "@logger";
 const setupWS = (httpServer: ServerHttp, app: Application) => {
 	const io = new Server(httpServer, {
 		cors: {
-			origin: "*",
+			origin: "http://localhost:3000",
 			credentials: true,
-			methods: ["GET", "POST"],
-			allowedHeaders: ["authorization", "cookie"],
 		},
 		allowEIO3: true,
 		transports: ["websocket", "polling"],
