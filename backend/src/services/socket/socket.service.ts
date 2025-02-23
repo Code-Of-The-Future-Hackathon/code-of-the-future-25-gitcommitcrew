@@ -35,9 +35,7 @@ const setupServerListeners = (io: Server) => {
 			| undefined;
 
 		if (user) {
-			const socketId = userSocketMap.get(user.id);
-
-			if (!socketId) {
+			if (!userSocketMap.has(user.id)) {
 				userSocketMap.set(user.id, {
 					requestedData: [],
 					connection: socket.id,
@@ -86,7 +84,6 @@ const setupServerListeners = (io: Server) => {
 				if (!user) {
 					return;
 				}
-				logger.info("here");
 
 				const socket = userSocketMap.get(user.id);
 

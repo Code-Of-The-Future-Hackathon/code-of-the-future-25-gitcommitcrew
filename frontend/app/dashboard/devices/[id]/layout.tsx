@@ -1,16 +1,16 @@
 import { Sidebar } from "@/components/monitoring/sidebar";
 import { generateMockData } from "@/lib/mock-data";
-import { useSearchParams } from "next/navigation";
 
 const mockData = generateMockData();
 
-export default function DeviceLayout({
+export default async function DeviceLayout({
 	children,
+	params,
 }: {
 	children: React.ReactNode;
+	params: Promise<{ id: string }>;
 }) {
-	const id = useSearchParams().get("id");
-	if (!id) return null;
+	const { id } = await params;
 
 	return (
 		<div className="bg-background flex h-screen">

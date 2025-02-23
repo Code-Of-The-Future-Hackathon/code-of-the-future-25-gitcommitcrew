@@ -17,7 +17,9 @@ const enum events {
 export const useSocket = () => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [isConnected, setIsConnected] = useState(false);
-	const [data, setData] = useState([]);
+	const [data, setData] = useState<
+		{ data: Extract<EventData, { type: "memory" }>; timestamp: Date }[]
+	>([]);
 
 	useEffect(() => {
 		const socketIo = io("ws://localhost:3005", { withCredentials: true });
@@ -30,9 +32,17 @@ export const useSocket = () => {
 			setIsConnected(false);
 		});
 
-		socketIo.on(events.SERVER_NEW_DATA, (hostId: string, data: EventData[]) => {
-			console.log(hostId, data);
-		});
+		socketIo.on(
+			events.SERVER_NEW_DATA,
+			(res: { hostId: string; data: EventData }) => {
+				if (res.data.type == "memory") {
+					setData((prev) => [
+						...prev,
+						{ data: res.data, timestamp: new Date() },
+					]);
+				}
+			},
+		);
 
 		setSocket(socketIo);
 

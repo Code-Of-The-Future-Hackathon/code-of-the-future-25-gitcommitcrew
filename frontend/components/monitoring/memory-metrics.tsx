@@ -1,14 +1,27 @@
 "use client";
 
 import { MetricCard } from "./metric-card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TimeInterval } from "@/types/monitoring";
 import { formatBytes } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CustomChart } from "./custom-chart";
+import { useSocket } from "@/app/hooks/useSocket";
 
 export function MemoryMetrics({ metrics }: { metrics: any }) {
 	const [interval, setInterval] = useState<TimeInterval>("5m");
+	const { changeRequestedData, isConnected, data } = useSocket();
+
+	const usedMemory = data.map((inner) => {
+		return {
+			timestamp: inner.timestamp.getTime(),
+			value: inner.data.data.mem.available,
+		};
+	});
+
+	useEffect(() => {
+		changeRequestedData(["memory"]);
+	}, [isConnected]);
 
 	return (
 		<section id="memory" className="space-y-6">
@@ -16,10 +29,11 @@ export function MemoryMetrics({ metrics }: { metrics: any }) {
 			<div className="grid grid-cols-1 gap-6">
 				<CustomChart
 					title="Memory Used"
-					data={metrics.used}
+					data={usedMemory}
 					interval={interval}
 					onIntervalChange={setInterval}
 					formatValue={(v) => formatBytes(v)}
+					domain={[0, data[0].data.data.mem.total]}
 				/>
 				<CustomChart
 					title="Swap Usage"
@@ -40,16 +54,15 @@ export function MemoryMetrics({ metrics }: { metrics: any }) {
 									<div
 										className="bg-primary h-full"
 										style={{
-											width: `${(metrics.used[metrics.used.length - 1].value / metrics.total) * 100}%`,
+											width: `${(data[0].data.data.mem.available / data[0].data.data.mem.total) * 100}%`,
 										}}
 									/>
 								</div>
 								<div className="text-muted-foreground mt-2 flex justify-between text-sm">
 									<span>
-										Used:{" "}
-										{formatBytes(metrics.used[metrics.used.length - 1].value)}
+										Used: {formatBytes(data[0].data.data.mem.available)}
 									</span>
-									<span>Total: {formatBytes(metrics.total)}</span>
+									<span>Total: {formatBytes(data[0].data.data.mem.total)}</span>
 								</div>
 							</div>
 						</CardContent>

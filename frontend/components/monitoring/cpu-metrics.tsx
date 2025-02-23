@@ -1,11 +1,17 @@
 "use client";
 
 import { CustomChart } from "./custom-chart";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TimeInterval } from "@/types/monitoring";
+import { useSocket } from "@/app/hooks/useSocket";
 
 export function CPUMetrics({ metrics }: { metrics: any }) {
 	const [interval, setInterval] = useState<TimeInterval>("5m");
+	const { changeRequestedData, isConnected } = useSocket();
+
+	useEffect(() => {
+		changeRequestedData(["cpu", "process"]);
+	}, [isConnected]);
 
 	return (
 		<section className="space-y-6">

@@ -1,3 +1,5 @@
+"use client";
+
 import { CPUMetrics } from "@/components/monitoring/cpu-metrics";
 import { generateMockData } from "@/lib/mock-data";
 
