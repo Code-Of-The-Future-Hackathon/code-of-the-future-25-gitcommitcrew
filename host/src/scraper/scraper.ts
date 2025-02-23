@@ -4,7 +4,7 @@ import { get } from "systeminformation";
 import { events, type Data } from "@/../../events";
 import { queries } from "@/scraper/queries";
 
-const FAST_TIMER = 1.337 * 1000;
+const FAST_TIMER = 5 * 1000;
 const DEFAULT_TIMER = 30 * 1000;
 
 class Scraper {

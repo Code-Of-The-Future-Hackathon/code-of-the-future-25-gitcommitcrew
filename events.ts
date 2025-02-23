@@ -138,33 +138,6 @@ type ProcessData = {
 			rawLoadGuest: number;
 		}[];
 	};
-	processes: {
-		all: number;
-		running: number;
-		blocked: number;
-		sleeping: number;
-		unknown: number;
-		list: {
-			pid: number;
-			parentPid: number;
-			name: string;
-			cpu: number;
-			cpuu: number;
-			cpus: number;
-			mem: number;
-			priority: number;
-			memVsz: number;
-			memRss: number;
-			nice: number;
-			started: string;
-			state: string;
-			tty: string;
-			user: string;
-			command: string;
-			params: string;
-			path: string;
-		}[];
-	};
 };
 
 type NetworkData = {
@@ -180,16 +153,6 @@ type NetworkData = {
 		rx_sec: number | null;
 		tx_sec: number | null;
 		ms: number;
-	}[];
-	networkConnections: {
-		protocol: string;
-		localAddress: string;
-		localPort: string;
-		peerAddress: string;
-		peerPort: string;
-		state: string;
-		pid: number | null;
-		process: string;
 	}[];
 };
 

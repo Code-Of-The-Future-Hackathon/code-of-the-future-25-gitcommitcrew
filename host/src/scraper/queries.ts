@@ -18,11 +18,9 @@ export const queries = {
 	process: {
 		currentLoad:
 			"avgLoad, currentLoad, currentLoadUser, currentLoadSystem, currentLoadNice, currentLoadIdle, currentLoadIrq, rawCurrentLoad, cpus",
-		processes: "*",
 	},
 	network: {
 		networkStats: "*",
-		networkConnections: "*",
 	},
 	disk: { diskLayout: "*", fsSize: "*" },
 };

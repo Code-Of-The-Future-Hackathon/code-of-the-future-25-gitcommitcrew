@@ -271,7 +271,8 @@ const getHistoryData = async (
 		.select()
 		.from(SystemData)
 		.where(and(eq(SystemData.hostId, hostId), inArray(SystemData.type, types)))
-		.orderBy(SystemData.type, desc(SystemData.createdAt));
+		.orderBy(SystemData.type, desc(SystemData.createdAt))
+		.limit(500);
 
 	if (!systemData) {
 		throw new AppError(SystemErrors.NOT_FOUND);
@@ -279,7 +280,7 @@ const getHistoryData = async (
 
 	const mappedData: Record<string, TSystemData[]> = {};
 
-	for (const data of systemData) {
+	for (const data of systemData.reverse()) {
 		if (!mappedData[data.type]) {
 			mappedData[data.type] = [];
 		}
